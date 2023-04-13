@@ -1,0 +1,8 @@
+int variable, ola = 5, oopsiedoopsie = 777;
+
+main(){
+	int cometa;
+	int petazeta = 55;
+	int vaya_la_cobaya;
+	vaya = 5 + 3 * 7;
+}
