@@ -1,8 +1,15 @@
-int variable, ola = 5, oopsiedoopsie = 777;
+int test, test2 = 44, test3;
 
 main(){
-	int cometa;
-	int petazeta = 55;
+	printf(" cosas del string ",  1 +2, 7 *7 );
+	puts("Cabezacubo");
 	int vaya_la_cobaya;
 	vaya = 5 + 3 * 7;
+	while (3 + 3)
+	{
+		int cometa;
+		int petazeta = 55;
+		varai = 6 + 5;
+	}
+	int vaya_la_cobaya;
 }

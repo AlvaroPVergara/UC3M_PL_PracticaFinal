@@ -19,6 +19,8 @@ char *char_to_string (char) ;
 
 char temp [2048] ;
 
+char *code_generated;
+
 // Definitions for explicit attributes
 
 typedef struct s_attr {
@@ -38,6 +40,8 @@ typedef struct s_attr {
 %token STRING
 %token MAIN          // identifica el comienzo del proc. main
 %token WHILE         // identifica el bucle main
+%token PUTS
+%token PRINTF
 
 
 // Definitions for implicit attributes.
@@ -70,11 +74,14 @@ typedef struct s_attr {
 /* El axioma debe poder derivar la estructura de un programa en C que es: <Decl Variables> <Def Funciones>. */
 
 
-axioma:      initial_asignations entry_main     	{ printf ("%s%s\n", $1.code, $2.code) ; }
+axioma:      initial_asignations  entry_main     	{ /*printf ("%s%s\n", $1.code, $2.code) ;*/ ; }
             ;
 
 /* Parse all assignations */
-initial_asignations: topStartAssign ';' recAsignations { 	if ($3.code != NULL){
+initial_asignations:                                        { ;  }
+                        | startRecursInitAsign              { printf ("%s\n", $1.code); }
+                        
+startRecursInitAsign: topStartAssign ';' recStartAsignations { 	if ($3.code != NULL){
 															sprintf (temp, "%s;\n%s",  $1.code, $3.code) ;
 														} else {
 															sprintf (temp, "%s;\n",  $1.code) ;
@@ -82,20 +89,27 @@ initial_asignations: topStartAssign ';' recAsignations { 	if ($3.code != NULL){
 														$$.code = gen_code (temp) ; }
 
 
-recAsignations:							{ $$.code = NULL; }
-					| initial_asignations { $$.code = $1.code; }
-
 /* Structure of a top assignation: int var1, var2, var3...*/
-topStartAssign: INTEGER variable restVariable /*IDENTIF restTopAsign*/ { sprintf (temp, "%s%s",  $2.code, $3.code) ; 
+topStartAssign:                                                            { $$.code = NULL; }
+                | INTEGER variable recTopVariable /*IDENTIF restTopAsign*/ { if ($3.code != NULL){
+                                                                                sprintf (temp, "%s%s",  $2.code, $3.code) ; 
+                                                                            } else{
+                                                                                sprintf (temp, "%s",  $2.code) ; 
+                                                                            }
+                                                                            
                                           									$$.code = gen_code (temp) ; }
 
+recStartAsignations:							{ $$.code = NULL; }
+					| startRecursInitAsign { $$.code = $1.code; }
+
+
 /* Structure of a variable: var_name ( =CONSTANT )*/
-variable: IDENTIF restTopAsign				{ sprintf (temp, "(setq %s %d)",  $1.code, $2.value) ; 
+variable: IDENTIF restTopVariable		{ sprintf (temp, "(setq %s %d)",  $1.code, $2.value) ; 
                                           		$$.code = gen_code (temp) ; }
 
 /* Each different variable has to be sepparated by a comma */
-restVariable: 										{ $$.code = NULL ; }
-				| ',' variable restVariable		   { if ($3.code){
+recTopVariable: 										{ $$.code = NULL ; }
+				| ',' variable recTopVariable		   { if ($3.code){
 													sprintf (temp, " %s%s",  $2.code, $3.code) ;  
 													} else {
 													sprintf (temp, " %s",  $2.code) ;  
@@ -103,15 +117,15 @@ restVariable: 										{ $$.code = NULL ; }
 													$$.code = gen_code (temp) ; }
 
                                             /* If lambda, return 0 */
-restTopAsign:                                   {  $$.value = 0 ; }
+restTopVariable:                                   {  $$.value = 0 ; }
             |    '=' NUMBER                  {  $$.value = $2.value; }
 
 entry_main: MAIN '(' ')' '{' rec_sentencia '}' {    if ($5.code){
-														sprintf(temp, "(defun main ()\n%s)\n(main) ;", $5.code); 
+														printf("(defun main ()\n%s)\n(main) ;", $5.code); 
 													} else {
-														sprintf(temp, "(defun main ()\n)\n(main) ;");  /* No body in main */
+														printf("(defun main ()\n)\n(main) ;");  /* No body in main */
 													}
-                                                    $$.code = gen_code (temp) ; }
+                                                     }
 
 rec_sentencia:                  { $$.code = NULL; }
                     |            sentencia ';' rec_sentencia{ if ($3.code){
@@ -121,18 +135,34 @@ rec_sentencia:                  { $$.code = NULL; }
 															 } 
 															 $$.code = gen_code(temp);
 															}
+                    |           sentenciaWhile rec_sentencia{
+                                                             if ($2.code){
+																sprintf(temp, "\t%s\n%s", $1.code, $2.code);
+															 }else{
+																sprintf(temp, "\t%s\n", $1.code); 
+															 } 
+															 $$.code = gen_code(temp);
+                                                            }
 
 sentencia:  IDENTIF '=' expresion      { sprintf (temp, "(setq %s %s)", $1.code, $3.code) ; 
                                            $$.code = gen_code (temp) ; }
-            | '$' '(' expresion print_rec ')'      { 
-                                                        if ($4.code)
-                                                            sprintf (temp, "(print %s) %s", $3.code, $4.code);
+            | PRINTF '(' STRING ',' expresion print_rec ')'      { 
+                                                        if ($6.code)
+                                                            sprintf (temp, "(print %s) %s", $5.code, $6.code);
                                                         else
-                                                            sprintf (temp, "(print %s)", $3.code);
+                                                            sprintf (temp, "(print %s)", $5.code);
 
                                                         $$.code = gen_code (temp) ; }
             |   funcAssign            { $$.code = $1.code ;    }
+            | PUTS '('  STRING  ')' {            sprintf(temp, "(print \"%s\")",$4.code);
+                                                        $$.code = gen_code (temp) ; }
             ;
+
+sentenciaWhile: WHILE '(' expresion ')' '{' rec_sentencia '}' {
+                                                            //TODO: REC SENTENCIA SOLO PILLA LA PRIMERA SENTENCIA
+                                                            sprintf(temp, "(loop while %s do %s)", $3.code, $6.code);
+                                                            $$.code = gen_code (temp) ;
+                                                                }
 
 /* We are warned to have no conflicts between global variable grammar and function variable grammar, so we dup it */
 
@@ -229,6 +259,9 @@ typedef struct s_keyword { // para las palabras reservadas de C
 t_keyword keywords [] = { // define las palabras reservadas y los
     "main",        MAIN,           // y los token asociados
     "int",         INTEGER,
+    "puts",        PUTS,
+    "printf",      PRINTF,
+    "while",       WHILE,
     NULL,          0               // para marcar el fin de la tabla
 } ;
 
