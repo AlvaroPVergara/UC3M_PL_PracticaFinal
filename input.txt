@@ -1,12 +1,18 @@
 int test, test2 = 44, test3;
+int vaya_la_cobaya2;
 
 main(){
 	printf(" cosas del string ",  1 +2, 7 *7 );
 	puts("Cabezacubo");
 	int vaya_la_cobaya;
 	vaya = 5 + 3 * 7;
-	while (3 + 3)
+	while (a == 3 && a == 54 )
 	{
+		if (a == 0 ) {
+			b = 123 + 56;
+		} else {
+			b = 456 ;
+		}
 		int cometa;
 		int petazeta = 55;
 		varai = 6 + 5;

@@ -40,8 +40,16 @@ typedef struct s_attr {
 %token STRING
 %token MAIN          // identifica el comienzo del proc. main
 %token WHILE         // identifica el bucle main
+%token IF
+%token ELSE
 %token PUTS
 %token PRINTF
+%token AND          // tokens logical
+%token OR  
+%token LEQ          // lesser or equal
+%token GEQ          // greater or equal
+%token EQ           // EQ
+%token NEQ          // NEQ
 
 
 // Definitions for implicit attributes.
@@ -65,6 +73,10 @@ typedef struct s_attr {
 */
 
 %right '='                    // es la ultima operacion que se debe realizar
+%left OR
+%left AND
+%left EQ NEQ
+%left '<' LEQ '>' GEQ
 %left '+' '-'                 // menor orden de precedencia
 %left '*' '/'                 // orden de precedencia intermedio
 %left UNARY_SIGN              // mayor orden de precedencia
@@ -79,14 +91,13 @@ axioma:      initial_asignations  entry_main     	{ /*printf ("%s%s\n", $1.code,
 
 /* Parse all assignations */
 initial_asignations:                                        { ;  }
-                        | startRecursInitAsign              { printf ("%s\n", $1.code); }
+                        | startRecursInitAsign              { ; }
                         
-startRecursInitAsign: topStartAssign ';' recStartAsignations { 	if ($3.code != NULL){
-															sprintf (temp, "%s;\n%s",  $1.code, $3.code) ;
-														} else {
-															sprintf (temp, "%s;\n",  $1.code) ;
-														}
-														$$.code = gen_code (temp) ; }
+startRecursInitAsign: topStartAssign ';' { 	if ($1.code != NULL){
+												printf("%s \n",$1.code ); 
+                                            }
+                                         }
+                    recStartAsignations { ; }
 
 
 /* Structure of a top assignation: int var1, var2, var3...*/
@@ -120,29 +131,17 @@ recTopVariable: 										{ $$.code = NULL ; }
 restTopVariable:                                   {  $$.value = 0 ; }
             |    '=' NUMBER                  {  $$.value = $2.value; }
 
-entry_main: MAIN '(' ')' '{' rec_sentencia '}' {    if ($5.code){
-														printf("(defun main ()\n%s)\n(main) ;", $5.code); 
-													} else {
-														printf("(defun main ()\n)\n(main) ;");  /* No body in main */
-													}
-                                                     }
+                                                    
+entry_main: MAIN '(' ')' '{'            { printf("(defun main ()\n"); }
+                    rec_sentencia       { ; }
+                    '}'                 { printf(")\n"); }
 
 rec_sentencia:                  { $$.code = NULL; }
-                    |            sentencia ';' rec_sentencia{ if ($3.code){
-																sprintf(temp, "\t%s\n%s", $1.code, $3.code);
-															 }else{
-																sprintf(temp, "\t%s\n", $1.code); 
-															 } 
-															 $$.code = gen_code(temp);
-															}
-                    |           sentenciaWhile rec_sentencia{
-                                                             if ($2.code){
-																sprintf(temp, "\t%s\n%s", $1.code, $2.code);
-															 }else{
-																sprintf(temp, "\t%s\n", $1.code); 
-															 } 
-															 $$.code = gen_code(temp);
-                                                            }
+                    |           sentencia ';' { if ($1.code) {printf("\t%s\n", $1.code); }}
+                                rec_sentencia { ; }
+                    |           sentenciaWhile rec_sentencia { ; }
+                    |           sentenciaIF rec_sentencia { ; }
+
 
 sentencia:  IDENTIF '=' expresion      { sprintf (temp, "(setq %s %s)", $1.code, $3.code) ; 
                                            $$.code = gen_code (temp) ; }
@@ -157,12 +156,26 @@ sentencia:  IDENTIF '=' expresion      { sprintf (temp, "(setq %s %s)", $1.code,
             | PUTS '('  STRING  ')' {            sprintf(temp, "(print \"%s\")",$4.code);
                                                         $$.code = gen_code (temp) ; }
             ;
-
-sentenciaWhile: WHILE '(' expresion ')' '{' rec_sentencia '}' {
-                                                            //TODO: REC SENTENCIA SOLO PILLA LA PRIMERA SENTENCIA
+/*
+sentenciaWhile: WHILE '(' expresion  ')' '{' rec_sentencia '}' {
+                                                            
                                                             sprintf(temp, "(loop while %s do %s)", $3.code, $6.code);
                                                             $$.code = gen_code (temp) ;
-                                                                }
+                                                                }*/
+
+sentenciaWhile: WHILE '(' expresionLogic  ')' '{'  {  printf("loop while %s do \n", $3.code); }
+                rec_sentencia { ; }
+                 '}'        { printf(")\n"); }
+
+sentenciaIF: IF '(' expresionLogic  ')' '{'  {  printf("if %s\n (progn ", $3.code); }
+                rec_sentencia { ; }
+                 '}' restoIF       { printf(")\n"); }
+
+restoIF:                        { printf(")\n"); }
+        | ELSE '{'              { printf("(progn "); }
+                rec_sentencia   { ; }
+                 '}'            { printf(")\n)\n"); }
+
 
 /* We are warned to have no conflicts between global variable grammar and function variable grammar, so we dup it */
 
@@ -179,7 +192,25 @@ print_rec:
                                           else
                                                 sprintf (temp, "(print %s)", $2.code); 
                                            $$.code = gen_code (temp) ; }
-          
+
+expresionLogic: termino                  { $$ = $1 ; }
+                | expresionLogic AND expresionLogic  { sprintf(temp, "(and %s %s)", $1.code, $3.code) ;
+                                           $$.code = gen_code (temp) ; }
+                | expresionLogic OR expresionLogic  { sprintf(temp, "(or %s %s)", $1.code, $3.code) ;
+                                           $$.code = gen_code (temp) ; }
+                | expresionLogic NEQ expresionLogic  { sprintf(temp, "(/= %s %s)", $1.code, $3.code) ;
+                                           $$.code = gen_code (temp) ; }
+                | expresionLogic EQ expresionLogic  { sprintf(temp, "(= %s %s)", $1.code, $3.code) ;
+                                           $$.code = gen_code (temp) ; }
+                | expresionLogic '<' expresionLogic  { sprintf(temp, "(< %s %s)", $1.code, $3.code) ;
+                                           $$.code = gen_code (temp) ; }
+                | expresionLogic LEQ expresionLogic  { sprintf(temp, "(<= %s %s)", $1.code, $3.code) ;
+                                           $$.code = gen_code (temp) ; }
+                | expresionLogic '>' expresionLogic  { sprintf(temp, "(> %s %s)", $1.code, $3.code) ;
+                                           $$.code = gen_code (temp) ; }
+                | expresionLogic GEQ expresionLogic  { sprintf(temp, "(>= %s %s)", $1.code, $3.code) ;
+                                           $$.code = gen_code (temp) ; }
+
 expresion:      termino                  { $$ = $1 ; }
             |   expresion '+' expresion  { sprintf (temp, "(+ %s %s)", $1.code, $3.code) ;
                                            $$.code = gen_code (temp) ; }
@@ -262,6 +293,14 @@ t_keyword keywords [] = { // define las palabras reservadas y los
     "puts",        PUTS,
     "printf",      PRINTF,
     "while",       WHILE,
+    "if",          IF,
+    "else",        ELSE,
+    "&&",          AND,
+    "||",          OR,
+    "<=",          LEQ,
+    ">=",          GEQ,
+    "==",          EQ,
+    "!=",          NEQ,
     NULL,          0               // para marcar el fin de la tabla
 } ;
 
