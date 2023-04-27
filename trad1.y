@@ -172,6 +172,10 @@ restoIF:                        { printf(")\n"); }
                 rec_sentencia   { ; }
                  '}'            { printf(")\n)\n"); }
 
+/*TODO: COMPROBAR FUNCIONAMIENTO Y ESTRUCTRURA DE sentenciaFOR*/
+sentenciaFOR: FOR '(' funcAssign ';' expresionLogic ';' increaseDecrease ')' '{'    {printf("loop while %s do \n", $5.code);}
+                rec_sentencia                                                       { ; }
+                '}'                                                                 {printf(")\n");}       
 
 /* We are warned to have no conflicts between global variable grammar and function variable grammar, so we dup it */
 
@@ -181,6 +185,10 @@ funcAssign: INTEGER IDENTIF restFuncAsign { sprintf (temp, "(setq %s %d)",  $2.c
                                             /* If lambda, return 0 */
 restFuncAsign:                                   {  $$.value = 0 ; }
             |    '=' NUMBER                  {  $$.value = $2.value; }
+
+/*TODO: COMPROBAR ESTRUCTURA increaseDecrease*/
+increaseDecrease: IDENTIF '=' expresion {sprintf(temp, "%s = %s", $1.code, $3.code) ;
+                                           $$.code = gen_code (temp) ;}
 /* ------------------------------------------------------ ------------------------------------------------------- */
 print_rec: 
             | ',' expresion print_rec   { if ($3.code)
