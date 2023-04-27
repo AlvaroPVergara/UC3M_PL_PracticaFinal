@@ -39,7 +39,8 @@ typedef struct s_attr {
 %token INTEGER       // identifica el tipo entero
 %token STRING
 %token MAIN          // identifica el comienzo del proc. main
-%token WHILE         // identifica el bucle main
+%token WHILE
+%token FOR         
 %token IF
 %token ELSE
 %token PUTS
@@ -141,6 +142,7 @@ rec_sentencia:                  { $$.code = NULL; }
                                 rec_sentencia { ; }
                     |           sentenciaWhile rec_sentencia { ; }
                     |           sentenciaIF rec_sentencia { ; }
+                    |           sentenciaFOR rec_sentencia { ; }
 
 
 sentencia:  IDENTIF '=' expresion      { sprintf (temp, "(setq %s %s)", $1.code, $3.code) ; 
@@ -156,12 +158,6 @@ sentencia:  IDENTIF '=' expresion      { sprintf (temp, "(setq %s %s)", $1.code,
             | PUTS '('  STRING  ')' {            sprintf(temp, "(print \"%s\")",$4.code);
                                                         $$.code = gen_code (temp) ; }
             ;
-/*
-sentenciaWhile: WHILE '(' expresion  ')' '{' rec_sentencia '}' {
-                                                            
-                                                            sprintf(temp, "(loop while %s do %s)", $3.code, $6.code);
-                                                            $$.code = gen_code (temp) ;
-                                                                }*/
 
 sentenciaWhile: WHILE '(' expresionLogic  ')' '{'  {  printf("loop while %s do \n", $3.code); }
                 rec_sentencia { ; }
@@ -293,6 +289,7 @@ t_keyword keywords [] = { // define las palabras reservadas y los
     "puts",        PUTS,
     "printf",      PRINTF,
     "while",       WHILE,
+    "for",         FOR,
     "if",          IF,
     "else",        ELSE,
     "&&",          AND,
