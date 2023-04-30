@@ -98,7 +98,8 @@ startRecursInitAsign: topStartAssign ';' { 	if ($1.code != NULL){
 												printf("%s \n",$1.code ); 
                                             }
                                          }
-                    recStartAsignations { ; }
+                     recStartAsignations { ; }
+					| functionDef recStartAsignations { ; }
 
 
 /* Structure of a top assignation: int var1, var2, var3...*/
@@ -114,10 +115,35 @@ topStartAssign:                                                            { $$.
 recStartAsignations:							{ $$.code = NULL; }
 					| startRecursInitAsign { $$.code = $1.code; }
 
+functionDef: IDENTIF '(' functionArgs ')'  '{'   { printf("(defun %s (%s)\n", $1.code, $3.code); }
+                rec_sentencia                   { ; }
+				/* retSentencia*/       
+			'}'                                 { printf(")\n"); }
+
+
+functionArgs:                                { $$.code = ""; }
+            |  INTEGER varIdentf recArgFunct {    if( $3.code == NULL)    {
+                                                sprintf(temp, "%s",  $2.code);
+                                            }
+                                            else{
+												sprintf(temp, "%s %s", $2.code, $3.code);
+                                            }
+											$$.code = gen_code(temp);
+										}
+recArgFunct:                        { $$.code = NULL; }
+			 | ',' functionArgs		 { $$.code = $2.code; }
+
+
+
 
 /* Structure of a variable: var_name ( =CONSTANT )*/
-variable: IDENTIF restTopVariable		{ sprintf (temp, "(setq %s %d)",  $1.code, $2.value) ; 
-                                          		$$.code = gen_code (temp) ; }
+variable: IDENTIF restTopVariable				{ if ($2.code == NULL){
+													sprintf (temp, "(setq %s %d)",  $1.code, $2.value) ; 
+													$$.code = gen_code (temp) ;
+												} else {
+													sprintf (temp, "(setq %s %s)",  $1.code, $2.code) ; 
+													$$.code = gen_code (temp) ;
+												}}
 
 /* Each different variable has to be sepparated by a comma */
 recTopVariable: 										{ $$.code = NULL ; }
@@ -129,8 +155,10 @@ recTopVariable: 										{ $$.code = NULL ; }
 													$$.code = gen_code (temp) ; }
 
                                             /* If lambda, return 0 */
-restTopVariable:                                   {  $$.value = 0 ; }
-            |    '=' NUMBER                  {  $$.value = $2.value; }
+restTopVariable:                                   {  $$.value = 0 ; $$.code = NULL; }
+            |    '=' NUMBER                  {  $$.value = $2.value; $$.code = NULL; }
+            |    '[' NUMBER ']'              { sprintf(temp, "(make-array %d)", $2.value);
+												$$.code = gen_code(temp); }
 
                                                     
 entry_main: MAIN '(' ')' '{'            { printf("(defun main ()\n"); }
@@ -138,15 +166,20 @@ entry_main: MAIN '(' ')' '{'            { printf("(defun main ()\n"); }
                     '}'                 { printf(")\n"); }
 
 rec_sentencia:                  { $$.code = NULL; }
-                    |           sentencia ';' { if ($1.code) {printf("\t%s\n", $1.code); }}
+                    |           sentencia ';' { if ($1.code) {printf("%s\n", $1.code); }}
                                 rec_sentencia { ; }
                     |           sentenciaWhile rec_sentencia { ; }
                     |           sentenciaIF rec_sentencia { ; }
                     |           sentenciaFOR rec_sentencia { ; }
 
 
-sentencia:  IDENTIF '=' expresion      { sprintf (temp, "(setq %s %s)", $1.code, $3.code) ; 
+sentencia:  IDENTIF isVector '=' expresion      {  if ($2.code == NULL){
+                                                sprintf (temp, "(setq %s %s)", $1.code, $4.code) ; 
+                                            } else{
+                                                sprintf (temp, "(setf (aref %s %s) %s)", $1.code, $2.code, $4.code) ;
+                                            }
                                            $$.code = gen_code (temp) ; }
+
             | PRINTF '(' STRING ',' expresion print_rec ')'      { 
                                                         if ($6.code)
                                                             sprintf (temp, "(print %s) %s", $5.code, $6.code);
@@ -159,35 +192,41 @@ sentencia:  IDENTIF '=' expresion      { sprintf (temp, "(setq %s %s)", $1.code,
                                                         $$.code = gen_code (temp) ; }
             ;
 
-sentenciaWhile: WHILE '(' expresionLogic  ')' '{'  {  printf("loop while %s do \n", $3.code); }
+sentenciaWhile: WHILE '(' expresionLogic  ')' '{'  {  printf("(loop while %s do \n", $3.code); }
                 rec_sentencia { ; }
                  '}'        { printf(")\n"); }
 
-sentenciaIF: IF '(' expresionLogic  ')' '{'  {  printf("if %s\n (progn ", $3.code); }
+sentenciaIF: IF '(' expresionLogic  ')' '{'  {  printf("(if %s\n(progn ", $3.code); }
                 rec_sentencia { ; }
-                 '}' restoIF       { printf(")\n"); }
+                 '}' restoIF       { ; }
 
-restoIF:                        { printf(")\n"); }
-        | ELSE '{'              { printf("(progn "); }
+restoIF:                        { printf(")\n)\n"); }
+        | ELSE '{'              { printf(")\n(progn "); }
                 rec_sentencia   { ; }
                  '}'            { printf(")\n)\n"); }
 
 /*TODO: COMPROBAR FUNCIONAMIENTO Y ESTRUCTRURA DE sentenciaFOR*/
-sentenciaFOR: FOR '(' funcAssign ';' expresionLogic ';' increaseDecrease ')' '{'    {printf("loop while %s do \n", $5.code);}
+sentenciaFOR: FOR '(' funcAssign ';' expresionLogic ';' increaseDecrease ')' '{'    {printf("(loop while %s do \n", $5.code);}
                 rec_sentencia                                                       { ; }
-                '}'                                                                 {printf(")\n");}       
+                '}'                                                                 {printf("%s\n)\n",$7.code);}       
 
 /* We are warned to have no conflicts between global variable grammar and function variable grammar, so we dup it */
 
-funcAssign: INTEGER IDENTIF restFuncAsign { sprintf (temp, "(setq %s %d)",  $2.code, $3.value) ; 
-                                          $$.code = gen_code (temp) ;    }
+funcAssign: INTEGER IDENTIF restFuncAsign { if ($3.code == NULL) {
+                                                sprintf (temp, "(setq %s %d)",  $2.code, $3.value);
+                                            } else {
+                                                sprintf (temp, "(setq %s %s)",  $2.code, $3.code);
+                                            }
+                                            $$.code = gen_code (temp) ;    }
 
                                             /* If lambda, return 0 */
-restFuncAsign:                                   {  $$.value = 0 ; }
-            |    '=' NUMBER                  {  $$.value = $2.value; }
+restFuncAsign:                                   {  $$.value = 0 ; $$.code = NULL ;}
+				|    '=' NUMBER                  		{  $$.value = $2.value; $$.code = NULL; }
+				|    '[' NUMBER ']'              { sprintf(temp, "(make-array %d)", $2.value);
+													$$.code = gen_code(temp); }
 
 /*TODO: COMPROBAR ESTRUCTURA increaseDecrease*/
-increaseDecrease: IDENTIF '=' expresion {sprintf(temp, "%s = %s", $1.code, $3.code) ;
+increaseDecrease: IDENTIF '=' expresion {sprintf(temp, "(setq %s %s)", $1.code, $3.code) ;
                                            $$.code = gen_code (temp) ;}
 /* ------------------------------------------------------ ------------------------------------------------------- */
 print_rec: 
@@ -233,13 +272,22 @@ termino:        operando                           { $$ = $1 ; }
                                                      $$.code = gen_code (temp) ; }    
             ;
 
-operando:       IDENTIF                  { sprintf (temp, "%s", $1.code) ;
-                                           $$.code = gen_code (temp) ; }
+operando:      varIdentf                 { $$.code = $1.code ; }
             |   NUMBER                   { sprintf (temp, "%d", $1.value) ;
                                            $$.code = gen_code (temp) ; }
             |   '(' expresion ')'        { $$ = $2 ; }
             ;
 
+
+varIdentf:  IDENTIF isVector               {if ($2.code == NULL){
+                                                    sprintf (temp, "%s", $1.code);}
+                                                else {
+                                                    sprintf (temp, "(aref %s %s)", $1.code, $2.code);
+                                                }
+                                                $$.code = gen_code (temp) ; }
+
+isVector:                                      { $$.code = NULL; }
+            |  '[' NUMBER ']'                  { sprintf(temp, "%d", $2.value); $$.code = gen_code(temp);}
 
 %%                            // SECCION 4    Codigo en C
 
