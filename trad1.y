@@ -87,39 +87,43 @@ typedef struct s_attr {
 /* El axioma debe poder derivar la estructura de un programa en C que es: <Decl Variables> <Def Funciones>. */
 
 
-axioma:      initial_asignations  entry_main     	{ /*printf ("%s%s\n", $1.code, $2.code) ;*/ ; }
-            ;
+axioma:      declaracionesGlob  funcionesDef  mainDef 	{ ; }
+            
 
-/* Parse all assignations */
-initial_asignations:                                        { ;  }
-                        | startRecursInitAsign              { ; }
-                        
-startRecursInitAsign: topStartAssign ';' { 	if ($1.code != NULL){
-												printf("%s \n",$1.code ); 
-                                            }
-                                         }
-                     recStartAsignations { ; }
-					| functionDef recStartAsignations { ; }
+/*------------ GLOBAL DECLARATION VARIABLE MANAGEMENT ------------*/
+declaracionesGlob:                                                              { ; }
+                        | declaracionesGlobRec ';' declaracionesGlob            { ; }
 
-
-/* Structure of a top assignation: int var1, var2, var3...*/
-topStartAssign:                                                            { $$.code = NULL; }
-                | INTEGER variable recTopVariable /*IDENTIF restTopAsign*/ { if ($3.code != NULL){
-                                                                                sprintf (temp, "%s%s",  $2.code, $3.code) ; 
-                                                                            } else{
-                                                                                sprintf (temp, "%s",  $2.code) ; 
+declaracionesGlobRec:   INTEGER IDENTIF restGlobVar restDeclaracionesGlob   { if ($3.code==NULL){
+                                                                                    printf("(setq %s %d)%s\n", $2.code, $3.value, $4.code);
+                                                                                } else{
+                                                                                    printf("(setq %s %s)%s\n", $2.code, $3.code, $4.code);
+                                                                                }
                                                                             }
-                                                                            
-                                          									$$.code = gen_code (temp) ; }
 
-recStartAsignations:							{ $$.code = NULL; }
-					| startRecursInitAsign { $$.code = $1.code; }
+restDeclaracionesGlob:                                                      { $$.code = ""; }
+                        | ',' IDENTIF restGlobVar restDeclaracionesGlob     { if ($3.code==NULL){
+                                                                                    sprintf(temp, " (setq %s %d)%s", $2.code, $3.value, $4.code);
+                                                                                    $$.code = gen_code(temp);
+                                                                                } else {
+                                                                                    sprintf(temp, " (setq %s %s)%s", $2.code, $3.code, $4.code);
+                                                                                    $$.code = gen_code(temp);
+                                                                                }
+                                                                            }
 
-functionDef: IDENTIF '(' functionArgs ')'  '{'   { printf("(defun %s (%s)\n", $1.code, $3.code); }
-                rec_sentencia                   { ; }
-				/* retSentencia*/       
-			'}'                                 { printf(")\n"); }
+restGlobVar:                    { $$.value = 0; 
+                                    $$.code = NULL;}
+            | '=' NUMBER        { $$.value = $2.value; 
+                                    $$.code = NULL;}
+            | '[' NUMBER ']'    { sprintf(temp, "(make-array %d)", $2.value);
+								    $$.code = gen_code(temp); }
 
+
+/*------------ FUNCTIONS DECLARATION MANAGEMENT ------------*/
+funcionesDef:                                       { ; }
+            |   IDENTIF '(' functionArgs ')'  '{'   { printf("(defun %s (%s)\n", $1.code, $3.code); }
+                rec_sentencia                       { ; }
+                funcionesDef                        { ; }
 
 functionArgs:                                { $$.code = ""; }
             |  INTEGER varIdentf recArgFunct {    if( $3.code == NULL)    {
@@ -135,50 +139,28 @@ recArgFunct:                        { $$.code = NULL; }
 
 
 
-
-/* Structure of a variable: var_name ( =CONSTANT )*/
-variable: IDENTIF restTopVariable				{ if ($2.code == NULL){
-													sprintf (temp, "(setq %s %d)",  $1.code, $2.value) ; 
-													$$.code = gen_code (temp) ;
-												} else {
-													sprintf (temp, "(setq %s %s)",  $1.code, $2.code) ; 
-													$$.code = gen_code (temp) ;
-												}}
-
-/* Each different variable has to be sepparated by a comma */
-recTopVariable: 										{ $$.code = NULL ; }
-				| ',' variable recTopVariable		   { if ($3.code){
-													sprintf (temp, " %s%s",  $2.code, $3.code) ;  
-													} else {
-													sprintf (temp, " %s",  $2.code) ;  
-													}
-													$$.code = gen_code (temp) ; }
-
-                                            /* If lambda, return 0 */
-restTopVariable:                                   {  $$.value = 0 ; $$.code = NULL; }
-            |    '=' NUMBER                  {  $$.value = $2.value; $$.code = NULL; }
-            |    '[' NUMBER ']'              { sprintf(temp, "(make-array %d)", $2.value);
-												$$.code = gen_code(temp); }
-
+/*------------ MAIN FUNCTION DECLARATION MANAGEMENT ------------*/
                                                     
-entry_main: MAIN '(' ')' '{'            { printf("(defun main ()\n"); }
+mainDef: MAIN '(' ')' '{'            { printf("(defun main ()\n"); }
                     rec_sentencia       { ; }
-                    '}'                 { printf(")\n"); }
-
-rec_sentencia:                  { $$.code = NULL; }
-                    |           sentencia ';' { if ($1.code) {printf("%s\n", $1.code); }}
-                                rec_sentencia { ; }
-                    |           sentenciaWhile rec_sentencia { ; }
-                    |           sentenciaIF rec_sentencia { ; }
-                    |           sentenciaFOR rec_sentencia { ; }
 
 
-sentencia:  IDENTIF isVector '=' expresion      {  if ($2.code == NULL){
+/*------------ STATEMENT LEVEL ------------*/
+rec_sentencia:      '}'                             { printf(")\n"); }
+                    |   RETURN expresion ';' '}'    { printf("%s\n)\n", $2.code); }
+
+                    |   sentencia                   { if ($1.code) { printf("%s\n", $1.code); }}
+                        rec_sentencia               { ; }
+
+
+
+sentencia:  IDENTIF isVector '=' expresion  {  if ($2.code == NULL){
                                                 sprintf (temp, "(setq %s %s)", $1.code, $4.code) ; 
                                             } else{
                                                 sprintf (temp, "(setf (aref %s %s) %s)", $1.code, $2.code, $4.code) ;
                                             }
-                                           $$.code = gen_code (temp) ; }
+                                            $$.code = gen_code (temp) ; }
+            |   declaraciones               { $$.code = $1.code ;}
 
             | PRINTF '(' STRING ',' expresion print_rec ')'      { 
                                                         if ($6.code)
@@ -187,10 +169,38 @@ sentencia:  IDENTIF isVector '=' expresion      {  if ($2.code == NULL){
                                                             sprintf (temp, "(print %s)", $5.code);
 
                                                         $$.code = gen_code (temp) ; }
-            |   funcAssign            { $$.code = $1.code ;    }
+
             | PUTS '('  STRING  ')' {            sprintf(temp, "(print \"%s\")",$4.code);
                                                         $$.code = gen_code (temp) ; }
-            ;
+                                                        
+
+
+declaraciones: INTEGER IDENTIF restVar restDeclaraciones    { if ($3.value==0){
+                                                                sprintf(temp,"(setq %s %s)%s\n", $2.code, $3.code, $4.code);
+                                                            } else{
+                                                                sprintf(temp,"(setq %s %s)%s\n", $2.code, $3.code, $4.code);
+                                                            } 
+                                                            $$.code = gen_code(temp)
+                                                            }
+
+restDeclaraciones:                                                      { $$.code = ""; }
+                        | ',' IDENTIF restVar restDeclaraciones     { if ($3.value==0){
+                                                                            sprintf(temp, " (setq %s %s)%s", $2.code, $3.code, $4.code);
+                                                                        } else {
+                                                                            sprintf(temp, " (setq %s %s)%s", $2.code, $3.code, $4.code);
+                                                                        }
+                                                                        $$.code = gen_code(temp);
+                                                                    }
+
+restVar:                        { $$.value = 0; 
+                                    $$.code = "0";}
+            | '=' expresion      { $$.value = 0; 
+                                    $$.code = $2.code;}
+            | '[' NUMBER ']'    {  $$.value = 1;
+                                    sprintf(temp, "(make-array %d)", $2.value);
+								    $$.code = gen_code(temp); }
+
+
 
 sentenciaWhile: WHILE '(' expresionLogic  ')' '{'  {  printf("(loop while %s do \n", $3.code); }
                 rec_sentencia { ; }
