@@ -1,0 +1,161 @@
+// Test cases for top declarations 
+
+int my_var; // Normal no assignation
+int mi_vector[22]; // Normal vector no assignation 
+int my_assigned_var = 1; // Normal assignation 
+//int my_assigned_vector[23] = 3; // ERROR: Should not be possible 
+
+int my_var1, my_var2; // Two declarations 
+int my_var1, my_var2, my_var3, my_var4; // Multiple declarations 
+
+int my_var1, my_assigned_var = 33; // One declaration with one asignation
+
+// Intercalled assignation and declarations 
+int my_var1, my_assigned_var = 88, my_var2;
+
+int my_var1, my_assigned_var = 99, my_var2, my_assigned_var2 = 777, my_var3;
+
+int my_assigned_var = 88, my_assigned_var2 = 99, my_assigned_var3 = 100;
+
+int my_assigned_var = 99, mi_vector[88], my_vector2[33], my_var, my_assigned_var2 = 55, my_vector3[44], my_var2;
+
+// int error checks
+// my_error_var = 99;
+// my_error_vector[88];
+
+mi_argless_function () {
+	// int my_assigned_var = 99, mi_vector[88], my_vector2[33], my_var, my_assigned_var2 = 55, my_vector3[44], my_var2;
+	printf(" Printf test ", 1+2, 7*7 );
+	puts("Puts test");
+	if (8 < 7){
+		// Test for non-last return statement + get vector value
+		return mi_vector[55];
+	}
+	my_expression = 77;
+	my_vectorized_expresion[22] = 33;
+	return my_assigned_var;
+}
+
+mi_twoargs_function (int test, int potato) {
+// Test for void function
+}
+
+
+mi_multipleargs_function(int arg1, int arg2, int arg3, int arg4) {
+	// int my_assigned_var = 99, mi_vector[88], my_vector2[33], my_var, my_assigned_var2 = 55, my_vector3[44], my_var2;
+	printf(" Printf test ", 1+2, 7*7 );
+	puts("Puts test");
+	// Test for set vector
+
+	my_vector[42] = 777;
+	my_vector[33] = var1 + var2 / 6 * 22;
+
+
+	my_expression = 77;
+	my_vectorized_expresion[22] = 33;
+	return test;
+}
+
+
+
+main(){
+	// Test declaration and assignations
+	int unassigned;
+	int assigned = 66;
+	int my_assigned_var = 99, mi_vector[88], my_vector2[33], my_var, my_assigned_var2 = 55, my_vector3[44], my_var2;
+
+	// Test expressions
+	simple_assignation = 5;
+	expresion_assignation = 3 + 5;
+	multiple_expression_assignation = 100 * 89 + (7 * 77 + 3) + 24 / 12 * (22 + 3)
+
+
+	// Test function on assignations
+	test_procedure();
+	test_procedure_multiple_arguments(arg1, arg2, arg3);
+	mi_variable = mi_function();
+	mi_variable = mi_arg_function(arg1, arg2, arg3);
+	// Complex arguments
+	mi_variable = mi_arg_function(1 + 1);
+	mi_variable = mi_arg_function(1 + 1, other_var, another_function());
+	mi_variable = mi_arg_function(1 + 1, other_var, another_function(with_arguments));
+
+	// Test conditionals
+	// Simple if
+	if (1 < 2){
+		puts("True");
+	}
+	// Simple if else
+	if (2 < 1){
+		puts("False");
+	} else {
+		puts("True);
+	}
+	// If else with multiple instructions
+	if (2 < 1){
+		int false_variable;
+		puts("False");
+		false_assignation = 55;
+		false_function(false_argument);
+	} else {
+		puts("True);
+		int true_variable;
+		puts("False");
+		true_assignation = 55;
+		true_function(true_argument);
+	}
+	// Nested If-elses
+	if (2 < 1){
+		if (3 > 2){
+			puts("If inside of the first if");
+		}
+		int inside_if_the_first_if;
+	} else {
+		if (4 > 3){
+			puts("If inside of the first else);
+		} else {
+			puts("Else inside of the first else);
+			random_procedure(random_arg);
+		}
+		int inside_else;
+	}
+
+	// Nested for loop with if statements
+	for (int i = 0; i < 55; i = i + 1)
+	{
+		if (a == 0 ) {
+			// Test get vector
+			test_assign = 123 + mi_vector[77];
+			test = test + test - test;
+			otra_sentencia = 99;
+		} else {
+			b = 456 ;
+			t = t - t *2;
+		}
+		int var1;
+		int asign1 = 55;
+		undeclared_var = 6 + 5;
+	}
+	int unassigned_var;
+	another_procedure();
+
+	// Nested for loop with another for loop
+	for (int j = 0; j < 200;  j = j + 1){
+		int test_var;
+		for (int i = 0; i < 99; i = i + 1){
+			test_var = i;
+			another_procedure();
+		}
+		my_assigned_var = (99 + 1) / 100;
+	}
+
+	// Check for complex logical expressions
+	if ((my_test_var == (another_less_var < another_greater_var || 77 > 66)) != (1 == 1)){
+		puts("Bingo");
+		// Test for non-last return on main
+		return -1;
+	}
+
+	// Test last return on main, also test: comment this return to get a return-less main.
+	return (0);
+}

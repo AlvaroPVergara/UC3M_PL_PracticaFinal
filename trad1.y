@@ -163,12 +163,12 @@ mainDef: MAIN '(' ')' '{'           { printf("(defun main ()\n");
 
 
 /*------------ STATEMENT LEVEL ------------*/
-recSentenciaFin:      '}'                             { printf(")\n"); }
+recSentenciaFin:      '}'                              { printf(")\n"); }
                     |   RETURN expresionAric ';' '}'   { printf("%s\n)\n", $2.code); } 
-                    |   RETURN expresionAric ';'       { printf("(return-from %s %s)", act_function, $2.code); }
-                        recSentenciaNoFin          { ; }
-                    |   sentencia                  { if ($1.code) { printf("%s\n", $1.code); }}
-                        recSentenciaFin            { ; }
+                    |   RETURN expresionAric ';'       { printf("(return-from %s %s)\n", act_function, $2.code); }
+                        recSentenciaNoFin              { ; }
+                    |   sentencia                      { if ($1.code) { printf("%s\n", $1.code); }}
+                        recSentenciaFin                { ; }
                     ;
 
 recSentenciaNoFin:      RETURN expresionAric ';' '}'   { printf("%s\n)\n", $2.code); }
@@ -207,13 +207,13 @@ sentencia:     declaraciones ';'                                { $$.code = $1.c
                                                         
 
 //TODO: eliminar if else si al final no es necesario
-declaraciones: INTEGER IDENTIF restVar restDeclaraciones    { if ($3.value==0){
-                                                                    sprintf(temp,"(setq %s %s)%s\n", $2.code, $3.code, $4.code);
+declaraciones: INTEGER IDENTIF restVar restDeclaraciones        { if ($3.value==0){
+                                                                    sprintf(temp,"(setq %s %s)%s", $2.code, $3.code, $4.code);
                                                                 } else{
-                                                                    sprintf(temp,"(setq %s %s)%s\n", $2.code, $3.code, $4.code);
+                                                                    sprintf(temp,"(setq %s %s)%s", $2.code, $3.code, $4.code);
                                                                 } 
-                                                                $$.code = gen_code(temp);
-                                                            }
+                                                                    $$.code = gen_code(temp);
+                                                                 }
                 ;
 
 restDeclaraciones:                                                  { $$.code = ""; }
@@ -296,13 +296,13 @@ expresionBool: termino                     { $$ = $1 ; }
                                         $$.code = gen_code (temp) ; }
                                         
             // Arithmetic expressions tranlsated to boolean expressions
-            |   expresionBool '+' expresionBool  { sprintf (temp, "(/= 0 (+ %s %s))", $1.code, $3.code) ;
+            |   expresionBool '+' expresionAric  { sprintf (temp, "(/= 0 (+ %s %s))", $1.code, $3.code) ;
                                         $$.code = gen_code (temp) ; }
-            |   expresionBool '-' expresionBool  { sprintf (temp, "(/= 0 (- %s %s))", $1.code, $3.code) ;
+            |   expresionBool '-' expresionAric  { sprintf (temp, "(/= 0 (- %s %s))", $1.code, $3.code) ;
                                         $$.code = gen_code (temp) ; }
-            |   expresionBool '*' expresionBool  { sprintf (temp, "(/= 0 (* %s %s))", $1.code, $3.code) ;
+            |   expresionBool '*' expresionAric  { sprintf (temp, "(/= 0 (* %s %s))", $1.code, $3.code) ;
                                         $$.code = gen_code (temp) ; }
-            |   expresionBool '/' expresionBool  { sprintf (temp, "(/= 0 (/ %s %s))", $1.code, $3.code) ;
+            |   expresionBool '/' expresionAric  { sprintf (temp, "(/= 0 (/ %s %s))", $1.code, $3.code) ;
                                         $$.code = gen_code (temp) ; } 
             ;
                 
@@ -317,21 +317,21 @@ expresionAric: termino                     { $$ = $1 ; }
                                         $$.code = gen_code (temp) ; }
                                         
             // Boolean expressions translated to aricmetic expressions
-            | expresionAric AND expresionAric  { sprintf(temp, "(if (and %s %s) 1 0)", $1.code, $3.code) ;
+            | expresionAric AND expresionBool  { sprintf(temp, "(if (and %s %s) 1 0)", $1.code, $3.code) ;
                                         $$.code = gen_code (temp) ; }
-            | expresionAric OR expresionAric   { sprintf(temp, "(if (or %s %s) 1 0)", $1.code, $3.code) ;
+            | expresionAric OR expresionBool   { sprintf(temp, "(if (or %s %s) 1 0)", $1.code, $3.code) ;
                                         $$.code = gen_code (temp) ; }
-            | expresionAric NEQ expresionAric  { sprintf(temp, "(if (/= %s %s) 1 0)", $1.code, $3.code) ;
+            | expresionAric NEQ expresionBool  { sprintf(temp, "(if (/= %s %s) 1 0)", $1.code, $3.code) ;
                                         $$.code = gen_code (temp) ; }
-            | expresionAric EQ expresionAric   { sprintf(temp, "(if (= %s %s) 1 0)", $1.code, $3.code) ;
+            | expresionAric EQ expresionBool   { sprintf(temp, "(if (= %s %s) 1 0)", $1.code, $3.code) ;
                                         $$.code = gen_code (temp) ; }
-            | expresionAric '<' expresionAric  { sprintf(temp, "(if (< %s %s) 1 0)", $1.code, $3.code) ;
+            | expresionAric '<' expresionBool  { sprintf(temp, "(if (< %s %s) 1 0)", $1.code, $3.code) ;
                                         $$.code = gen_code (temp) ; }
-            | expresionAric LEQ expresionAric  { sprintf(temp, "(if (<= %s %s) 1 0)", $1.code, $3.code) ;
+            | expresionAric LEQ expresionBool  { sprintf(temp, "(if (<= %s %s) 1 0)", $1.code, $3.code) ;
                                         $$.code = gen_code (temp) ; }
-            | expresionAric '>' expresionAric  { sprintf(temp, "(if (> %s %s) 1 0)", $1.code, $3.code) ;
+            | expresionAric '>' expresionBool  { sprintf(temp, "(if (> %s %s) 1 0)", $1.code, $3.code) ;
                                         $$.code = gen_code (temp) ; }
-            | expresionAric GEQ expresionAric  { sprintf(temp, "(if (>= %s %s) 1 0)", $1.code, $3.code) ;
+            | expresionAric GEQ expresionBool  { sprintf(temp, "(if (>= %s %s) 1 0)", $1.code, $3.code) ;
                                         $$.code = gen_code (temp) ; }
             ;
 
@@ -369,9 +369,9 @@ funcionLlamada: IDENTIF '(' funcionArgsLlamada ')'      { sprintf(temp,"(%s %s)"
 
 funcionArgsLlamada:                                     { $$.code = ""; }
                     |  expresionAric recArgFunctLlamada    {   if( $2.code == NULL)    {
-                                                                sprintf(temp, "(%s)",  $1.code);
+                                                                sprintf(temp, "%s",  $1.code);
                                                             } else{
-                                                                sprintf(temp, "(%s) %s", $1.code, $2.code);
+                                                                sprintf(temp, "%s %s", $1.code, $2.code);
                                                             }
                                                             $$.code = gen_code(temp);
                                                         }
