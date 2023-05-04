@@ -28,6 +28,7 @@ char *concat_ptr;
 typedef struct s_attr {
         int value ;
         char *code ;
+        char *code2 ; 
         int isbool ; // 1 if is bool, 0 if aricmetic
 } t_attr ;
 
@@ -231,14 +232,32 @@ restVar:                        { $$.code = "0";}
             ;
 
 
-asignacion: IDENTIF isVector '=' expresionAric  {  if ($2.code == NULL){
+asignacion: IDENTIF '[' NUMBER ']' '=' expresionAric  {  if ($2.code == NULL){
                                                 sprintf (temp, "(setq %s %s)", $1.code, $4.code) ; 
                                             } else{
                                                 sprintf (temp, "(setf (aref %s %s) %s)", $1.code, $2.code, $4.code) ;
                                             }
                                             $$.code = gen_code (temp) ; }
+            | IDENTIF  asignacionMultiple expresionAric  { if ($2.code == NULL){
+                                                                sprintf (temp, "(setq %s %s)", $1.code, $3.code);
+                                                            } else {
+                                                                sprintf (temp, "(setf (values %s %s) (values %s %s))", $1.code, $2.code, $2.code2, $3.code );
+                                                            }
+                                                        $$.code = gen_code (temp);
+                                                        }
             ;
 
+asignacionMultiple: '='  { $$.code = NULL; }
+                    | ',' IDENTIF asignacionMultiple expresionAric ',' { if ($3.code == NULL){
+                                                                            $$.code = $2.code;
+                                                                            $$.code2 = $4.code;
+                                                                        } else {
+                                                                            sprintf (temp, "%s %s", $2.code, $3.code);
+                                                                            $$.code = gen_code (temp);
+                                                                            sprintf (temp, "%s %s", $3.code2, $4.code);
+                                                                            $$.code2 = gen_code (temp);
+                                                                        }
+                                                                        }
 
 
 sentenciaWhile: WHILE '(' expresionBool  ')' '{'   {  printf("(loop while %s do \n", $3.code); }

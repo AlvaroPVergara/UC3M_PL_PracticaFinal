@@ -3,9 +3,9 @@ int vaya_la_cobaya2 [43];
 
 
 patatofuncion (int var1, int var2) {
-	if (var_aritm * 77 + 44 / 6){
-		return 3 + 3;
-	}
+	a, v = 1 , 4;
+
+	var1, var2, var3, var4 = 1, 2, 3, 4;
 }
 
 
