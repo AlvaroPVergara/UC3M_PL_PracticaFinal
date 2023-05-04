@@ -21,12 +21,14 @@ char temp [2048] ;
 
 char *code_generated;
 char *act_function;
+char *concat_ptr;
 
 // Definitions for explicit attributes
 
 typedef struct s_attr {
         int value ;
         char *code ;
+        int isbool ; // 1 if is bool, 0 if aricmetic
 } t_attr ;
 
 #define YYSTYPE t_attr
@@ -164,8 +166,8 @@ mainDef: MAIN '(' ')' '{'           { printf("(defun main ()\n");
 
 /*------------ STATEMENT LEVEL ------------*/
 recSentenciaFin:      '}'                              { printf(")\n"); }
-                    |   RETURN expresionAric ';' '}'   { printf("%s\n)\n", $2.code); } 
-                    |   RETURN expresionAric ';'       { printf("(return-from %s %s)\n", act_function, $2.code); }
+                    |   RETURN expresionAric ';' '}'       { printf("%s\n)\n", $2.code); } 
+                    |   RETURN expresionAric ';'           { printf("(return-from %s %s)\n", act_function, $2.code); }
                         recSentenciaNoFin              { ; }
                     |   sentencia                      { if ($1.code) { printf("%s\n", $1.code); }}
                         recSentenciaFin                { ; }
@@ -188,7 +190,7 @@ recSentenciaCond:   '}'                            {printf(")\n"); }
 sentencia:     declaraciones ';'                                { $$.code = $1.code; }
             |   asignacion  ';'                                 { $$.code = $1.code; }
 
-            | PRINTF '(' STRING ',' expresionAric printRec ')' ';'  { if ($6.code) {
+            | PRINTF '(' STRING ',' expresion printRec ')' ';'  { if ($6.code) {
                                                                     sprintf (temp, "(print %s) %s", $5.code, $6.code);
                                                                  } else {
                                                                     sprintf (temp, "(print %s)", $5.code);
@@ -223,7 +225,7 @@ restDeclaraciones:                                                  { $$.code = 
                     ;
 
 restVar:                        { $$.code = "0";}
-            | '=' expresionAric     { $$.code = $2.code;}
+            | '=' expresionAric { $$.code = $2.code;}
             | '[' NUMBER ']'    { sprintf(temp, "(make-array %d)", $2.value);
 								    $$.code = gen_code(temp); }
             ;
@@ -267,7 +269,7 @@ declaracionFor: INTEGER IDENTIF restVar     {  sprintf(temp,"(setq %s %s)%s\n", 
                 ;
 
 printRec:                               { $$.code = NULL; }
-            | ',' expresionAric printRec    { if ($3.code)
+            | ',' expresion printRec    { if ($3.code)
                                                 sprintf (temp, "(print %s) %s", $2.code, $3.code);
                                           else
                                                 sprintf (temp, "(print %s)", $2.code); 
@@ -276,63 +278,247 @@ printRec:                               { $$.code = NULL; }
 
 /* ------------------------------------- EXPRESSION LEVEL --------------------------------------- */
 
+expresionBool: expresion        { if ( $1.isbool == 0){
+                                    sprintf(temp, "(/= 0 %s)", $1.code);
+                                    $$.code = gen_code(temp);
+                                  } else{
+                                    $$.code = $1.code;
+                                  }
+                                }
+            ;
 
-expresionBool: termino                     { $$ = $1 ; }
-            | expresionBool AND expresionBool  { sprintf(temp, "(and %s %s)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            | expresionBool OR expresionBool  { sprintf(temp, "(or %s %s)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            | expresionBool NEQ expresionBool  { sprintf(temp, "(/= %s %s)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            | expresionBool EQ expresionBool  { sprintf(temp, "(= %s %s)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            | expresionBool '<' expresionBool  { sprintf(temp, "(< %s %s)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            | expresionBool LEQ expresionBool  { sprintf(temp, "(<= %s %s)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            | expresionBool '>' expresionBool  { sprintf(temp, "(> %s %s)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            | expresionBool GEQ expresionBool  { sprintf(temp, "(>= %s %s)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
+expresionAric: expresion        { if ( $1.isbool == 1){
+                                    sprintf(temp, "(if %s 1 0)", $1.code);
+                                    $$.code = gen_code(temp);
+                                  } else{
+                                    $$.code = $1.code;
+                                  }
+                                }
+            ;
+
+
+expresion: termino                     { $$.code = $1.code ;
+                                         $$.value = $1.value ;
+                                        // Never translate terms
+                                         $$.isbool = 2; }
+            | expresion AND expresion  { concat_ptr = temp; 
+                                        concat_ptr += sprintf(concat_ptr, "(and ");
+                                        if ($1.isbool == 0){
+                                            // Concat $1 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(/= 0 %s) ", $1.code);
+                                        } else {
+                                            // Concat $1 as is
+                                            concat_ptr += sprintf(concat_ptr, "%s ", $1.code);
+                                        }
+                                        if ($3.isbool == 0){
+                                            // Concat $3 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(/= 0 %s))", $3.code);
+                                        } else {
+                                            concat_ptr += sprintf(concat_ptr, "%s )", $3.code);
+                                        }
+                                        $$.isbool = 1;
+                                        $$.code = gen_code (temp) ; 
+                                        }
+            | expresion OR expresion  { concat_ptr = temp; 
+                                        concat_ptr += sprintf(concat_ptr, "(or ");
+                                        if ($1.isbool == 0){
+                                            // Concat $1 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(/= 0 %s) ", $1.code);
+                                        } else {
+                                            // Concat $1 as is
+                                            concat_ptr += sprintf(concat_ptr, "%s ", $1.code);
+                                        }
+                                        if ($3.isbool == 0){
+                                            // Concat $3 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(/= 0 %s))", $3.code);
+                                        } else {
+                                            concat_ptr += sprintf(concat_ptr, "%s )", $3.code);
+                                        }
+                                        $$.isbool = 1;
+                                        $$.code = gen_code (temp) ; 
+                                        }
+            | expresion NEQ expresion  {concat_ptr = temp;  
+                                        concat_ptr += sprintf(concat_ptr, "(/= ");
+                                        if ($1.isbool == 0){
+                                            // Concat $1 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(/= 0 %s) ", $1.code);
+                                        } else {
+                                            // Concat $1 as is
+                                            concat_ptr += sprintf(concat_ptr, "%s ", $1.code);
+                                        }
+                                        if ($3.isbool == 0){
+                                            // Concat $3 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(/= 0 %s))", $3.code);
+                                        } else {
+                                            concat_ptr += sprintf(concat_ptr, "%s )", $3.code);
+                                        }
+                                        $$.isbool = 1;
+                                        $$.code = gen_code (temp) ; 
+                                        }
+            | expresion EQ expresion   { concat_ptr = temp;  
+                                        concat_ptr += sprintf(concat_ptr, "(== ");
+                                        if ($1.isbool == 0){
+                                            // Concat $1 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(/= 0 %s) ", $1.code);
+                                        } else {
+                                            // Concat $1 as is
+                                            concat_ptr += sprintf(concat_ptr, "%s ", $1.code);
+                                        }
+                                        if ($3.isbool == 0){
+                                            // Concat $3 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(/= 0 %s))", $3.code);
+                                        } else {
+                                            concat_ptr += sprintf(concat_ptr, "%s )", $3.code);
+                                        }
+                                        $$.isbool = 1;
+                                        $$.code = gen_code (temp) ; 
+                                        }
+            | expresion '<' expresion  {concat_ptr = temp;   
+                                        concat_ptr += sprintf(concat_ptr, "(< ");
+                                        if ($1.isbool == 0){
+                                            // Concat $1 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(/= 0 %s) ", $1.code);
+                                        } else {
+                                            // Concat $1 as is
+                                            concat_ptr += sprintf(concat_ptr, "%s ", $1.code);
+                                        }
+                                        if ($3.isbool == 0){
+                                            // Concat $3 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(/= 0 %s))", $3.code);
+                                        } else {
+                                            concat_ptr += sprintf(concat_ptr, "%s )", $3.code);
+                                        }
+                                        $$.isbool = 1;
+                                        $$.code = gen_code (temp) ; 
+                                        }
+            | expresion LEQ expresion  { concat_ptr = temp;  
+                                        concat_ptr += sprintf(concat_ptr, "(<= ");
+                                        if ($1.isbool == 0){
+                                            // Concat $1 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(/= 0 %s) ", $1.code);
+                                        } else {
+                                            // Concat $1 as is
+                                            concat_ptr += sprintf(concat_ptr, "%s ", $1.code);
+                                        }
+                                        if ($3.isbool == 0){
+                                            // Concat $3 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(/= 0 %s))", $3.code);
+                                        } else {
+                                            concat_ptr += sprintf(concat_ptr, "%s )", $3.code);
+                                        }
+                                        $$.isbool = 1;
+                                        $$.code = gen_code (temp) ; 
+                                        }
+            | expresion '>' expresion  {concat_ptr = temp;   
+                                        concat_ptr += sprintf(concat_ptr, "(> ");
+                                        if ($1.isbool == 0){
+                                            // Concat $1 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(/= 0 %s) ", $1.code);
+                                        } else {
+                                            // Concat $1 as is
+                                            concat_ptr += sprintf(concat_ptr, "%s ", $1.code);
+                                        }
+                                        if ($3.isbool == 0){
+                                            // Concat $3 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(/= 0 %s))", $3.code);
+                                        } else {
+                                            concat_ptr += sprintf(concat_ptr, "%s )", $3.code);
+                                        }
+                                        $$.isbool = 1;
+                                        $$.code = gen_code (temp) ; 
+                                        }
+            | expresion GEQ expresion  {concat_ptr = temp;    
+                                        concat_ptr += sprintf(concat_ptr, "(>= ");
+                                        if ($1.isbool == 0){
+                                            // Concat $1 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(/= 0 %s) ", $1.code);
+                                        } else {
+                                            // Concat $1 as is
+                                            concat_ptr += sprintf(concat_ptr, "%s ", $1.code);
+                                        }
+                                        if ($3.isbool == 0){
+                                            // Concat $3 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(/= 0 %s))", $3.code);
+                                        } else {
+                                            concat_ptr += sprintf(concat_ptr, "%s )", $3.code);
+                                        }
+                                        $$.isbool = 1;
+                                        $$.code = gen_code (temp) ; 
+                                        }
                                         
             // Arithmetic expressions tranlsated to boolean expressions
-            |   expresionBool '+' expresionAric  { sprintf (temp, "(/= 0 (+ %s %s))", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            |   expresionBool '-' expresionAric  { sprintf (temp, "(/= 0 (- %s %s))", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            |   expresionBool '*' expresionAric  { sprintf (temp, "(/= 0 (* %s %s))", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            |   expresionBool '/' expresionAric  { sprintf (temp, "(/= 0 (/ %s %s))", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; } 
-            ;
-                
-expresionAric: termino                     { $$ = $1 ; }
-            |   expresionAric '+' expresionAric  { sprintf (temp, "(+ %s %s)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            |   expresionAric '-' expresionAric  { sprintf (temp, "(- %s %s)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            |   expresionAric '*' expresionAric  { sprintf (temp, "(* %s %s)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            |   expresionAric '/' expresionAric  { sprintf (temp, "(/ %s %s)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-                                        
-            // Boolean expressions translated to aricmetic expressions
-            | expresionAric AND expresionBool  { sprintf(temp, "(if (and %s %s) 1 0)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            | expresionAric OR expresionBool   { sprintf(temp, "(if (or %s %s) 1 0)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            | expresionAric NEQ expresionBool  { sprintf(temp, "(if (/= %s %s) 1 0)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            | expresionAric EQ expresionBool   { sprintf(temp, "(if (= %s %s) 1 0)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            | expresionAric '<' expresionBool  { sprintf(temp, "(if (< %s %s) 1 0)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            | expresionAric LEQ expresionBool  { sprintf(temp, "(if (<= %s %s) 1 0)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            | expresionAric '>' expresionBool  { sprintf(temp, "(if (> %s %s) 1 0)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
-            | expresionAric GEQ expresionBool  { sprintf(temp, "(if (>= %s %s) 1 0)", $1.code, $3.code) ;
-                                        $$.code = gen_code (temp) ; }
+            |   expresion '+' expresion  { concat_ptr = temp;
+                                        concat_ptr += sprintf(concat_ptr, "(+ ");
+                                        if ($1.isbool == 1){
+                                            // Concat $1 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(if %s 1 0) ", $1.code);
+                                        } else {
+                                            // Concat $1 as is
+                                            concat_ptr += sprintf(concat_ptr, "%s ", $1.code);
+                                        }
+                                        if ($3.isbool == 1){
+                                            // Concat $3 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(if %s 1 0))", $3.code);
+                                        } else {
+                                            concat_ptr += sprintf(concat_ptr, "%s )", $3.code);
+                                        }
+                                        $$.isbool = 0;
+                                        $$.code = gen_code (temp) ; 
+                                        }
+            |   expresion '-' expresion  { concat_ptr = temp;
+                                        concat_ptr += sprintf(concat_ptr, "(- ");
+                                        if ($1.isbool == 1){
+                                            // Concat $1 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(if %s 1 0) ", $1.code);
+                                        } else {
+                                            // Concat $1 as is
+                                            concat_ptr += sprintf(concat_ptr, "%s ", $1.code);
+                                        }
+                                        if ($3.isbool == 1){
+                                            // Concat $3 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(if %s 1 0))", $3.code);
+                                        } else {
+                                            concat_ptr += sprintf(concat_ptr, "%s )", $3.code);
+                                        }
+                                        $$.isbool = 0;
+                                        $$.code = gen_code (temp) ; 
+                                        }
+            |   expresion '*' expresion  { concat_ptr = temp;
+                                        concat_ptr += sprintf(concat_ptr, "(* ");
+                                        if ($1.isbool == 1){
+                                            // Concat $1 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(if %s 1 0) ", $1.code);
+                                        } else {
+                                            // Concat $1 as is
+                                            concat_ptr += sprintf(concat_ptr, "%s ", $1.code);
+                                        }
+                                        if ($3.isbool == 1){
+                                            // Concat $3 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(if %s 1 0))", $3.code);
+                                        } else {
+                                            concat_ptr += sprintf(concat_ptr, "%s )", $3.code);
+                                        }
+                                        $$.isbool = 0;
+                                        $$.code = gen_code (temp) ; 
+                                        }
+            |   expresion '/' expresion  {concat_ptr = temp; 
+                                        concat_ptr += sprintf(concat_ptr, "(/ ");
+                                        if ($1.isbool == 1){
+                                            // Concat $1 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(if %s 1 0) ", $1.code);
+                                        } else {
+                                            // Concat $1 as is
+                                            concat_ptr += sprintf(concat_ptr, "%s ", $1.code);
+                                        }
+                                        if ($3.isbool == 1){
+                                            // Concat $3 transformed
+                                            concat_ptr += sprintf(concat_ptr, "(if %s 1 0))", $3.code);
+                                        } else {
+                                            concat_ptr += sprintf(concat_ptr, "%s )", $3.code);
+                                        }
+                                        $$.isbool = 0;
+                                        $$.code = gen_code (temp) ; 
+                                        }
             ;
 
 termino:        operando                           { $$ = $1 ; }                          
