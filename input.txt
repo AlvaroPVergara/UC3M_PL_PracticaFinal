@@ -2,3 +2,32 @@ int test, test2 = 44, test3 [134], test4 = 777;
 int vaya_la_cobaya2 [43];
 
 
+patatofuncion (int var1, int var2) {
+	printf(" cosas del string ",  1 +2, 7 *7 );
+	puts("Cabezacubo");
+	int vaya_la_cobaya[32];
+	vaya_la_cobaya [23] = 5 + 2;
+}
+
+
+
+main(){
+	vaya = 5 + 3 * 7;
+	for (int i = 0; i < vaya_la_cobaya; i = i + 1)
+	{
+		if (a == 0 ) {
+			b = 123 + mi_vector[77];
+			test = test + test - test;
+			otra_sentencia = 99;
+		} else {
+			b = 456 ;
+			t = t - t *2;
+		}
+		int cometa;
+		int petazeta = 55;
+		varai = 6 + 5;
+	}
+	int vaya_la_cobaya;
+}
+
+

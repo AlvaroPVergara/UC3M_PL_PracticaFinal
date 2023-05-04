@@ -20,6 +20,7 @@ char *char_to_string (char) ;
 char temp [2048] ;
 
 char *code_generated;
+char *act_function;
 
 // Definitions for explicit attributes
 
@@ -51,6 +52,7 @@ typedef struct s_attr {
 %token GEQ          // greater or equal
 %token EQ           // EQ
 %token NEQ          // NEQ
+%token RETURN
 
 
 // Definitions for implicit attributes.
@@ -88,11 +90,13 @@ typedef struct s_attr {
 
 
 axioma:      declaracionesGlob  funcionesDef  mainDef 	{ ; }
+            ;
             
 
 /*------------ GLOBAL DECLARATION VARIABLE MANAGEMENT ------------*/
 declaracionesGlob:                                                              { ; }
                         | declaracionesGlobRec ';' declaracionesGlob            { ; }
+                        ;
 
 declaracionesGlobRec:   INTEGER IDENTIF restGlobVar restDeclaracionesGlob   { if ($3.code==NULL){
                                                                                     printf("(setq %s %d)%s\n", $2.code, $3.value, $4.code);
@@ -100,6 +104,7 @@ declaracionesGlobRec:   INTEGER IDENTIF restGlobVar restDeclaracionesGlob   { if
                                                                                     printf("(setq %s %s)%s\n", $2.code, $3.code, $4.code);
                                                                                 }
                                                                             }
+                        ;
 
 restDeclaracionesGlob:                                                      { $$.code = ""; }
                         | ',' IDENTIF restGlobVar restDeclaracionesGlob     { if ($3.code==NULL){
@@ -110,6 +115,7 @@ restDeclaracionesGlob:                                                      { $$
                                                                                     $$.code = gen_code(temp);
                                                                                 }
                                                                             }
+                        ;
 
 restGlobVar:                    { $$.value = 0; 
                                     $$.code = NULL;}
@@ -117,162 +123,190 @@ restGlobVar:                    { $$.value = 0;
                                     $$.code = NULL;}
             | '[' NUMBER ']'    { sprintf(temp, "(make-array %d)", $2.value);
 								    $$.code = gen_code(temp); }
+            ;
 
 
 /*------------ FUNCTIONS DECLARATION MANAGEMENT ------------*/
 funcionesDef:                                       { ; }
-            |   IDENTIF '(' functionArgs ')'  '{'   { printf("(defun %s (%s)\n", $1.code, $3.code); }
-                rec_sentencia                       { ; }
+            |   IDENTIF '(' funcionArgs ')'  '{'    { printf("(defun %s (%s)\n", $1.code, $3.code); 
+                                                        act_function = $1.code;
+                                                    }
+                recSentencia                        { ; }
+                                                    { act_function = NULL; }
                 funcionesDef                        { ; }
+            ;
 
-functionArgs:                                { $$.code = ""; }
+funcionArgs:                                { $$.code = ""; }
             |  INTEGER varIdentf recArgFunct {    if( $3.code == NULL)    {
-                                                sprintf(temp, "%s",  $2.code);
+                                                    sprintf(temp, "%s",  $2.code);
+                                                } else{
+                                                    sprintf(temp, "%s %s", $2.code, $3.code);
+                                                }
+                                                $$.code = gen_code(temp);
                                             }
-                                            else{
-												sprintf(temp, "%s %s", $2.code, $3.code);
-                                            }
-											$$.code = gen_code(temp);
-										}
+            ;
+
 recArgFunct:                        { $$.code = NULL; }
-			 | ',' functionArgs		 { $$.code = $2.code; }
+			 | ',' funcionArgs		{ $$.code = $2.code; }
+             ;
 
 
 
 /*------------ MAIN FUNCTION DECLARATION MANAGEMENT ------------*/
                                                     
-mainDef: MAIN '(' ')' '{'            { printf("(defun main ()\n"); }
-                    rec_sentencia       { ; }
+mainDef: MAIN '(' ')' '{'           { printf("(defun main ()\n");
+                                        act_function = "main"; 
+                                    }
+                    recSentencia    { ; }
+                                    { ; }
+                    ;
 
 
 /*------------ STATEMENT LEVEL ------------*/
-rec_sentencia:      '}'                             { printf(")\n"); }
+recSentencia:      '}'                             { printf(")\n"); }
                     |   RETURN expresion ';' '}'    { printf("%s\n)\n", $2.code); }
 
                     |   sentencia                   { if ($1.code) { printf("%s\n", $1.code); }}
-                        rec_sentencia               { ; }
+                        recSentencia               { ; }
+                    ;
 
 
 
-sentencia:  IDENTIF isVector '=' expresion  {  if ($2.code == NULL){
+sentencia:     declaraciones ';'                                { $$.code = $1.code; }
+            |   asignacion  ';'                                 { $$.code = $1.code; }
+
+            | PRINTF '(' STRING ',' expresion printRec ')' ';'  { if ($6.code) {
+                                                                    sprintf (temp, "(print %s) %s", $5.code, $6.code);
+                                                                 } else {
+                                                                    sprintf (temp, "(print %s)", $5.code);
+                                                                 }
+                                                                $$.code = gen_code (temp) ; 
+                                                                }
+                                                       
+
+            | PUTS '('  STRING  ')' ';'                         { sprintf(temp, "(print \"%s\")",$4.code);
+                                                                    $$.code = gen_code (temp) ; }
+            | sentenciaWhile                                    { ; } 
+            | sentenciaIF                                       { ; }
+            | sentenciaFOR                                      { ; }
+            | funcionLlamada   ';'                              { $$.code = $1.code; }
+            | RETURN expresion ';'                              { sprintf(temp, "(return-from %s %s)", act_function, $2.code);
+                                                                    $$.code = gen_code(temp);
+                                                                }
+            ;
+                                                        
+
+//TODO: eliminar if else si al final no es necesario
+declaraciones: INTEGER IDENTIF restVar restDeclaraciones    { if ($3.value==0){
+                                                                    sprintf(temp,"(setq %s %s)%s\n", $2.code, $3.code, $4.code);
+                                                                } else{
+                                                                    sprintf(temp,"(setq %s %s)%s\n", $2.code, $3.code, $4.code);
+                                                                } 
+                                                                $$.code = gen_code(temp);
+                                                            }
+                ;
+
+restDeclaraciones:                                                  { $$.code = ""; }
+                    | ',' IDENTIF restVar restDeclaraciones     { if ($3.value==0){
+                                                                        sprintf(temp, " (setq %s %s)%s", $2.code, $3.code, $4.code);
+                                                                    } else {
+                                                                        sprintf(temp, " (setq %s %s)%s", $2.code, $3.code, $4.code);
+                                                                    }
+                                                                    $$.code = gen_code(temp);
+                                                                }
+                    ;
+
+restVar:                        { $$.value = 0; 
+                                    $$.code = "0";}
+            | '=' expresion     { $$.value = 0; 
+                                    $$.code = $2.code;}
+            | '[' NUMBER ']'    {  $$.value = 1;
+                                    sprintf(temp, "(make-array %d)", $2.value);
+								    $$.code = gen_code(temp); }
+            ;
+
+
+asignacion: IDENTIF isVector '=' expresion  {  if ($2.code == NULL){
                                                 sprintf (temp, "(setq %s %s)", $1.code, $4.code) ; 
                                             } else{
                                                 sprintf (temp, "(setf (aref %s %s) %s)", $1.code, $2.code, $4.code) ;
                                             }
                                             $$.code = gen_code (temp) ; }
-            |   declaraciones               { $$.code = $1.code ;}
-
-            | PRINTF '(' STRING ',' expresion print_rec ')'      { 
-                                                        if ($6.code)
-                                                            sprintf (temp, "(print %s) %s", $5.code, $6.code);
-                                                        else
-                                                            sprintf (temp, "(print %s)", $5.code);
-
-                                                        $$.code = gen_code (temp) ; }
-
-            | PUTS '('  STRING  ')' {            sprintf(temp, "(print \"%s\")",$4.code);
-                                                        $$.code = gen_code (temp) ; }
-                                                        
-
-
-declaraciones: INTEGER IDENTIF restVar restDeclaraciones    { if ($3.value==0){
-                                                                sprintf(temp,"(setq %s %s)%s\n", $2.code, $3.code, $4.code);
-                                                            } else{
-                                                                sprintf(temp,"(setq %s %s)%s\n", $2.code, $3.code, $4.code);
-                                                            } 
-                                                            $$.code = gen_code(temp)
-                                                            }
-
-restDeclaraciones:                                                      { $$.code = ""; }
-                        | ',' IDENTIF restVar restDeclaraciones     { if ($3.value==0){
-                                                                            sprintf(temp, " (setq %s %s)%s", $2.code, $3.code, $4.code);
-                                                                        } else {
-                                                                            sprintf(temp, " (setq %s %s)%s", $2.code, $3.code, $4.code);
-                                                                        }
-                                                                        $$.code = gen_code(temp);
-                                                                    }
-
-restVar:                        { $$.value = 0; 
-                                    $$.code = "0";}
-            | '=' expresion      { $$.value = 0; 
-                                    $$.code = $2.code;}
-            | '[' NUMBER ']'    {  $$.value = 1;
-                                    sprintf(temp, "(make-array %d)", $2.value);
-								    $$.code = gen_code(temp); }
+            ;
 
 
 
-sentenciaWhile: WHILE '(' expresionLogic  ')' '{'  {  printf("(loop while %s do \n", $3.code); }
-                rec_sentencia { ; }
-                 '}'        { printf(")\n"); }
+sentenciaWhile: WHILE '(' expresion  ')' '{'   {  printf("(loop while %s do \n", $3.code); }
+                recSentencia                        { ; }
+            ;
 
-sentenciaIF: IF '(' expresionLogic  ')' '{'  {  printf("(if %s\n(progn ", $3.code); }
-                rec_sentencia { ; }
-                 '}' restoIF       { ; }
 
-restoIF:                        { printf(")\n)\n"); }
+sentenciaIF: IF '(' expresion  ')' '{'     {  printf("(if %s\n(progn ", $3.code); }
+                recSentencia                    { ; }
+                restoIF                         { ; }
+            ;
+
+restoIF:                        { printf(")\n"); }
         | ELSE '{'              { printf(")\n(progn "); }
-                rec_sentencia   { ; }
-                 '}'            { printf(")\n)\n"); }
+            recSentencia        { ; } //TODO: comprobar que se coloca bien el paréntesis NO LO HACE
+                                { printf(")\n"); }
+        ;
+
+
 
 /*TODO: COMPROBAR FUNCIONAMIENTO Y ESTRUCTRURA DE sentenciaFOR*/
-sentenciaFOR: FOR '(' funcAssign ';' expresionLogic ';' increaseDecrease ')' '{'    {printf("(loop while %s do \n", $5.code);}
-                rec_sentencia                                                       { ; }
-                '}'                                                                 {printf("%s\n)\n",$7.code);}       
+sentenciaFOR: FOR '(' declaracionFor ';' expresion ';' asignacion ')' '{'    {printf("(loop while %s do \n", $5.code);}
+                recSentencia                                                        { ; }
+                                                                                    {printf("%s\n)\n",$7.code);}  
+                ;    
 
-/* We are warned to have no conflicts between global variable grammar and function variable grammar, so we dup it */
 
-funcAssign: INTEGER IDENTIF restFuncAsign { if ($3.code == NULL) {
-                                                sprintf (temp, "(setq %s %d)",  $2.code, $3.value);
-                                            } else {
-                                                sprintf (temp, "(setq %s %s)",  $2.code, $3.code);
-                                            }
-                                            $$.code = gen_code (temp) ;    }
+declaracionFor: INTEGER IDENTIF restVar     {  sprintf(temp,"(setq %s %s)%s\n", $2.code, $3.code, $3.code);
+                                            $$.code = gen_code(temp); }
+                ;
 
-                                            /* If lambda, return 0 */
-restFuncAsign:                                   {  $$.value = 0 ; $$.code = NULL ;}
-				|    '=' NUMBER                  		{  $$.value = $2.value; $$.code = NULL; }
-				|    '[' NUMBER ']'              { sprintf(temp, "(make-array %d)", $2.value);
-													$$.code = gen_code(temp); }
 
-/*TODO: COMPROBAR ESTRUCTURA increaseDecrease*/
+
+/*TODO: COMPROBAR ESTRUCTURA increaseDecrease
 increaseDecrease: IDENTIF '=' expresion {sprintf(temp, "(setq %s %s)", $1.code, $3.code) ;
                                            $$.code = gen_code (temp) ;}
-/* ------------------------------------------------------ ------------------------------------------------------- */
-print_rec: 
-            | ',' expresion print_rec   { if ($3.code)
+                ;*/
+
+printRec:                               { $$.code = NULL; }
+            | ',' expresion printRec    { if ($3.code)
                                                 sprintf (temp, "(print %s) %s", $2.code, $3.code);
                                           else
                                                 sprintf (temp, "(print %s)", $2.code); 
                                            $$.code = gen_code (temp) ; }
+            ;
 
-expresionLogic: termino                  { $$ = $1 ; }
-                | expresionLogic AND expresionLogic  { sprintf(temp, "(and %s %s)", $1.code, $3.code) ;
-                                           $$.code = gen_code (temp) ; }
-                | expresionLogic OR expresionLogic  { sprintf(temp, "(or %s %s)", $1.code, $3.code) ;
-                                           $$.code = gen_code (temp) ; }
-                | expresionLogic NEQ expresionLogic  { sprintf(temp, "(/= %s %s)", $1.code, $3.code) ;
-                                           $$.code = gen_code (temp) ; }
-                | expresionLogic EQ expresionLogic  { sprintf(temp, "(= %s %s)", $1.code, $3.code) ;
-                                           $$.code = gen_code (temp) ; }
-                | expresionLogic '<' expresionLogic  { sprintf(temp, "(< %s %s)", $1.code, $3.code) ;
-                                           $$.code = gen_code (temp) ; }
-                | expresionLogic LEQ expresionLogic  { sprintf(temp, "(<= %s %s)", $1.code, $3.code) ;
-                                           $$.code = gen_code (temp) ; }
-                | expresionLogic '>' expresionLogic  { sprintf(temp, "(> %s %s)", $1.code, $3.code) ;
-                                           $$.code = gen_code (temp) ; }
-                | expresionLogic GEQ expresionLogic  { sprintf(temp, "(>= %s %s)", $1.code, $3.code) ;
-                                           $$.code = gen_code (temp) ; }
+/* ------------------------------------- EXPRESSION LEVEL --------------------------------------- */
 
-expresion:      termino                  { $$ = $1 ; }
+expresion: termino                     { $$ = $1 ; }
+            | expresion AND expresion  { sprintf(temp, "(and %s %s)", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; }
+            | expresion OR expresion  { sprintf(temp, "(or %s %s)", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; }
+            | expresion NEQ expresion  { sprintf(temp, "(/= %s %s)", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; }
+            | expresion EQ expresion  { sprintf(temp, "(= %s %s)", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; }
+            | expresion '<' expresion  { sprintf(temp, "(< %s %s)", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; }
+            | expresion LEQ expresion  { sprintf(temp, "(<= %s %s)", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; }
+            | expresion '>' expresion  { sprintf(temp, "(> %s %s)", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; }
+            | expresion GEQ expresion  { sprintf(temp, "(>= %s %s)", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; }
             |   expresion '+' expresion  { sprintf (temp, "(+ %s %s)", $1.code, $3.code) ;
-                                           $$.code = gen_code (temp) ; }
+                                        $$.code = gen_code (temp) ; }
             |   expresion '-' expresion  { sprintf (temp, "(- %s %s)", $1.code, $3.code) ;
-                                           $$.code = gen_code (temp) ; }
+                                        $$.code = gen_code (temp) ; }
             |   expresion '*' expresion  { sprintf (temp, "(* %s %s)", $1.code, $3.code) ;
-                                           $$.code = gen_code (temp) ; }
+                                        $$.code = gen_code (temp) ; }
             |   expresion '/' expresion  { sprintf (temp, "(/ %s %s)", $1.code, $3.code) ;
-                                           $$.code = gen_code (temp) ; }
+                                        $$.code = gen_code (temp) ; }
             ;
 
 termino:        operando                           { $$ = $1 ; }                          
@@ -286,18 +320,41 @@ operando:      varIdentf                 { $$.code = $1.code ; }
             |   NUMBER                   { sprintf (temp, "%d", $1.value) ;
                                            $$.code = gen_code (temp) ; }
             |   '(' expresion ')'        { $$ = $2 ; }
+            | funcionLlamada             { $$.code = $1.code;}
             ;
 
 
 varIdentf:  IDENTIF isVector               {if ($2.code == NULL){
-                                                    sprintf (temp, "%s", $1.code);}
-                                                else {
+                                                    sprintf (temp, "%s", $1.code);
+                                                } else {
                                                     sprintf (temp, "(aref %s %s)", $1.code, $2.code);
                                                 }
-                                                $$.code = gen_code (temp) ; }
+                                                $$.code = gen_code (temp); }
+            ;
 
 isVector:                                      { $$.code = NULL; }
             |  '[' NUMBER ']'                  { sprintf(temp, "%d", $2.value); $$.code = gen_code(temp);}
+            ;
+
+funcionLlamada: IDENTIF '(' funcionArgsLlamada ')'      { sprintf(temp,"(%s %s)", $1.code, $3.code);
+                                                            $$.code = gen_code(temp);
+                                                        }
+            ;
+
+funcionArgsLlamada:                                     { $$.code = ""; }
+                    |  expresion recArgFunctLlamada    {   if( $2.code == NULL)    {
+                                                                sprintf(temp, "(%s)",  $1.code);
+                                                            } else{
+                                                                sprintf(temp, "(%s) %s", $1.code, $2.code);
+                                                            }
+                                                            $$.code = gen_code(temp);
+                                                        }
+                    ;
+
+recArgFunctLlamada:                        { $$.code = NULL; }
+			 | ',' funcionArgsLlamada		{ $$.code = $2.code; }
+             ;
+
 
 %%                            // SECCION 4    Codigo en C
 
@@ -364,6 +421,7 @@ t_keyword keywords [] = { // define las palabras reservadas y los
     ">=",          GEQ,
     "==",          EQ,
     "!=",          NEQ,
+    "return",      RETURN,
     NULL,          0               // para marcar el fin de la tabla
 } ;
 
