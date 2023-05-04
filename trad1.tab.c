@@ -546,11 +546,11 @@ static const yytype_int16 yyrline[] =
      157,   160,   157,   166,   167,   168,   168,   170,   170,   174,
      175,   175,   177,   177,   180,   181,   181,   183,   183,   188,
      189,   191,   200,   202,   203,   204,   205,   210,   219,   220,
-     229,   231,   233,   239,   249,   249,   254,   255,   254,   259,
-     260,   261,   260,   268,   269,   268,   274,   285,   286,   295,
-     296,   298,   300,   302,   304,   306,   308,   310,   312,   314,
-     316,   318,   322,   323,   325,   329,   330,   332,   333,   337,
-     345,   346,   349,   354,   355,   364,   365
+     225,   226,   227,   232,   242,   242,   247,   248,   247,   252,
+     253,   254,   253,   259,   260,   259,   265,   269,   270,   279,
+     280,   282,   284,   286,   288,   290,   292,   294,   296,   298,
+     300,   302,   306,   307,   309,   313,   314,   316,   317,   321,
+     329,   330,   333,   338,   339,   348,   349
 };
 #endif
 
@@ -1825,318 +1825,311 @@ yyreduce:
 
   case 49:
 #line 220 "trad1.y"
-                                                                { if (yyvsp[-1].value==0){
-                                                                        sprintf(temp, " (setq %s %s)%s", yyvsp[-2].code, yyvsp[-1].code, yyvsp[0].code);
-                                                                    } else {
-                                                                        sprintf(temp, " (setq %s %s)%s", yyvsp[-2].code, yyvsp[-1].code, yyvsp[0].code);
-                                                                    }
-                                                                    yyval.code = gen_code(temp);
+                                                                { sprintf(temp, " (setq %s %s)%s", yyvsp[-2].code, yyvsp[-1].code, yyvsp[0].code);
+                                                                  yyval.code = gen_code(temp);
                                                                 }
-#line 1836 "trad1.tab.c"
+#line 1832 "trad1.tab.c"
     break;
 
   case 50:
-#line 229 "trad1.y"
-                                { yyval.value = 0; 
-                                    yyval.code = "0";}
-#line 1843 "trad1.tab.c"
+#line 225 "trad1.y"
+                                { yyval.code = "0";}
+#line 1838 "trad1.tab.c"
     break;
 
   case 51:
-#line 231 "trad1.y"
-                                { yyval.value = 0; 
-                                    yyval.code = yyvsp[0].code;}
-#line 1850 "trad1.tab.c"
+#line 226 "trad1.y"
+                                { yyval.code = yyvsp[0].code;}
+#line 1844 "trad1.tab.c"
     break;
 
   case 52:
-#line 233 "trad1.y"
-                                {  yyval.value = 1;
-                                    sprintf(temp, "(make-array %d)", yyvsp[-1].value);
+#line 227 "trad1.y"
+                                { sprintf(temp, "(make-array %d)", yyvsp[-1].value);
 								    yyval.code = gen_code(temp); }
-#line 1858 "trad1.tab.c"
+#line 1851 "trad1.tab.c"
     break;
 
   case 53:
-#line 239 "trad1.y"
+#line 232 "trad1.y"
                                             {  if (yyvsp[-2].code == NULL){
                                                 sprintf (temp, "(setq %s %s)", yyvsp[-3].code, yyvsp[0].code) ; 
                                             } else{
                                                 sprintf (temp, "(setf (aref %s %s) %s)", yyvsp[-3].code, yyvsp[-2].code, yyvsp[0].code) ;
                                             }
                                             yyval.code = gen_code (temp) ; }
-#line 1869 "trad1.tab.c"
+#line 1862 "trad1.tab.c"
     break;
 
   case 54:
-#line 249 "trad1.y"
+#line 242 "trad1.y"
                                                {  printf("(loop while %s do \n", yyvsp[-2].code); }
-#line 1875 "trad1.tab.c"
+#line 1868 "trad1.tab.c"
     break;
 
   case 55:
-#line 250 "trad1.y"
+#line 243 "trad1.y"
                                                         { ; }
-#line 1881 "trad1.tab.c"
+#line 1874 "trad1.tab.c"
     break;
 
   case 56:
-#line 254 "trad1.y"
+#line 247 "trad1.y"
                                            {  printf("(if %s\n(progn ", yyvsp[-2].code); }
-#line 1887 "trad1.tab.c"
+#line 1880 "trad1.tab.c"
     break;
 
   case 57:
-#line 255 "trad1.y"
+#line 248 "trad1.y"
                                                     { ; }
-#line 1893 "trad1.tab.c"
+#line 1886 "trad1.tab.c"
     break;
 
   case 58:
-#line 256 "trad1.y"
+#line 249 "trad1.y"
                                                 { ; }
-#line 1899 "trad1.tab.c"
+#line 1892 "trad1.tab.c"
     break;
 
   case 59:
-#line 259 "trad1.y"
+#line 252 "trad1.y"
                                 { printf(")\n"); }
-#line 1905 "trad1.tab.c"
+#line 1898 "trad1.tab.c"
     break;
 
   case 60:
-#line 260 "trad1.y"
+#line 253 "trad1.y"
                                 { printf("(progn "); }
-#line 1911 "trad1.tab.c"
+#line 1904 "trad1.tab.c"
     break;
 
   case 61:
-#line 261 "trad1.y"
+#line 254 "trad1.y"
                                 { ; }
-#line 1917 "trad1.tab.c"
+#line 1910 "trad1.tab.c"
     break;
 
   case 62:
-#line 262 "trad1.y"
+#line 255 "trad1.y"
                                 { printf(")\n"); }
-#line 1923 "trad1.tab.c"
+#line 1916 "trad1.tab.c"
     break;
 
   case 63:
-#line 268 "trad1.y"
+#line 259 "trad1.y"
                                                                              {printf("(loop while %s do \n", yyvsp[-4].code);}
-#line 1929 "trad1.tab.c"
+#line 1922 "trad1.tab.c"
     break;
 
   case 64:
-#line 269 "trad1.y"
+#line 260 "trad1.y"
                                                                                         { ; }
-#line 1935 "trad1.tab.c"
+#line 1928 "trad1.tab.c"
     break;
 
   case 65:
-#line 270 "trad1.y"
+#line 261 "trad1.y"
                                                                                     {printf("%s\n)\n",yyvsp[-5].code);}
-#line 1941 "trad1.tab.c"
+#line 1934 "trad1.tab.c"
     break;
 
   case 66:
-#line 274 "trad1.y"
+#line 265 "trad1.y"
                                             {  sprintf(temp,"(setq %s %s)%s\n", yyvsp[-1].code, yyvsp[0].code, yyvsp[0].code);
                                             yyval.code = gen_code(temp); }
-#line 1948 "trad1.tab.c"
+#line 1941 "trad1.tab.c"
     break;
 
   case 67:
-#line 285 "trad1.y"
+#line 269 "trad1.y"
                                         { yyval.code = NULL; }
-#line 1954 "trad1.tab.c"
+#line 1947 "trad1.tab.c"
     break;
 
   case 68:
-#line 286 "trad1.y"
+#line 270 "trad1.y"
                                         { if (yyvsp[0].code)
                                                 sprintf (temp, "(print %s) %s", yyvsp[-1].code, yyvsp[0].code);
                                           else
                                                 sprintf (temp, "(print %s)", yyvsp[-1].code); 
                                            yyval.code = gen_code (temp) ; }
-#line 1964 "trad1.tab.c"
+#line 1957 "trad1.tab.c"
     break;
 
   case 69:
-#line 295 "trad1.y"
+#line 279 "trad1.y"
                                        { yyval = yyvsp[0] ; }
-#line 1970 "trad1.tab.c"
+#line 1963 "trad1.tab.c"
     break;
 
   case 70:
-#line 296 "trad1.y"
+#line 280 "trad1.y"
                                        { sprintf(temp, "(and %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
+                                        yyval.code = gen_code (temp) ; }
+#line 1970 "trad1.tab.c"
+    break;
+
+  case 71:
+#line 282 "trad1.y"
+                                      { sprintf(temp, "(or %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
                                         yyval.code = gen_code (temp) ; }
 #line 1977 "trad1.tab.c"
     break;
 
-  case 71:
-#line 298 "trad1.y"
-                                      { sprintf(temp, "(or %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
+  case 72:
+#line 284 "trad1.y"
+                                       { sprintf(temp, "(/= %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
                                         yyval.code = gen_code (temp) ; }
 #line 1984 "trad1.tab.c"
     break;
 
-  case 72:
-#line 300 "trad1.y"
-                                       { sprintf(temp, "(/= %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
+  case 73:
+#line 286 "trad1.y"
+                                      { sprintf(temp, "(= %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
                                         yyval.code = gen_code (temp) ; }
 #line 1991 "trad1.tab.c"
     break;
 
-  case 73:
-#line 302 "trad1.y"
-                                      { sprintf(temp, "(= %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
+  case 74:
+#line 288 "trad1.y"
+                                       { sprintf(temp, "(< %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
                                         yyval.code = gen_code (temp) ; }
 #line 1998 "trad1.tab.c"
     break;
 
-  case 74:
-#line 304 "trad1.y"
-                                       { sprintf(temp, "(< %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
+  case 75:
+#line 290 "trad1.y"
+                                       { sprintf(temp, "(<= %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
                                         yyval.code = gen_code (temp) ; }
 #line 2005 "trad1.tab.c"
     break;
 
-  case 75:
-#line 306 "trad1.y"
-                                       { sprintf(temp, "(<= %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
+  case 76:
+#line 292 "trad1.y"
+                                       { sprintf(temp, "(> %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
                                         yyval.code = gen_code (temp) ; }
 #line 2012 "trad1.tab.c"
     break;
 
-  case 76:
-#line 308 "trad1.y"
-                                       { sprintf(temp, "(> %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
+  case 77:
+#line 294 "trad1.y"
+                                       { sprintf(temp, "(>= %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
                                         yyval.code = gen_code (temp) ; }
 #line 2019 "trad1.tab.c"
     break;
 
-  case 77:
-#line 310 "trad1.y"
-                                       { sprintf(temp, "(>= %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
+  case 78:
+#line 296 "trad1.y"
+                                         { sprintf (temp, "(+ %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
                                         yyval.code = gen_code (temp) ; }
 #line 2026 "trad1.tab.c"
     break;
 
-  case 78:
-#line 312 "trad1.y"
-                                         { sprintf (temp, "(+ %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
+  case 79:
+#line 298 "trad1.y"
+                                         { sprintf (temp, "(- %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
                                         yyval.code = gen_code (temp) ; }
 #line 2033 "trad1.tab.c"
     break;
 
-  case 79:
-#line 314 "trad1.y"
-                                         { sprintf (temp, "(- %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
+  case 80:
+#line 300 "trad1.y"
+                                         { sprintf (temp, "(* %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
                                         yyval.code = gen_code (temp) ; }
 #line 2040 "trad1.tab.c"
     break;
 
-  case 80:
-#line 316 "trad1.y"
-                                         { sprintf (temp, "(* %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
+  case 81:
+#line 302 "trad1.y"
+                                         { sprintf (temp, "(/ %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
                                         yyval.code = gen_code (temp) ; }
 #line 2047 "trad1.tab.c"
     break;
 
-  case 81:
-#line 318 "trad1.y"
-                                         { sprintf (temp, "(/ %s %s)", yyvsp[-2].code, yyvsp[0].code) ;
-                                        yyval.code = gen_code (temp) ; }
-#line 2054 "trad1.tab.c"
-    break;
-
   case 82:
-#line 322 "trad1.y"
+#line 306 "trad1.y"
                                                    { yyval = yyvsp[0] ; }
-#line 2060 "trad1.tab.c"
+#line 2053 "trad1.tab.c"
     break;
 
   case 83:
-#line 323 "trad1.y"
+#line 307 "trad1.y"
                                                    { sprintf (temp, "(+ %s)", yyvsp[0].code) ;
+                                                     yyval.code = gen_code (temp) ; }
+#line 2060 "trad1.tab.c"
+    break;
+
+  case 84:
+#line 309 "trad1.y"
+                                                   { sprintf (temp, "(- %s)", yyvsp[0].code) ;
                                                      yyval.code = gen_code (temp) ; }
 #line 2067 "trad1.tab.c"
     break;
 
-  case 84:
-#line 325 "trad1.y"
-                                                   { sprintf (temp, "(- %s)", yyvsp[0].code) ;
-                                                     yyval.code = gen_code (temp) ; }
-#line 2074 "trad1.tab.c"
-    break;
-
   case 85:
-#line 329 "trad1.y"
+#line 313 "trad1.y"
                                          { yyval.code = yyvsp[0].code ; }
-#line 2080 "trad1.tab.c"
+#line 2073 "trad1.tab.c"
     break;
 
   case 86:
-#line 330 "trad1.y"
+#line 314 "trad1.y"
                                          { sprintf (temp, "%d", yyvsp[0].value) ;
                                            yyval.code = gen_code (temp) ; }
-#line 2087 "trad1.tab.c"
+#line 2080 "trad1.tab.c"
     break;
 
   case 87:
-#line 332 "trad1.y"
+#line 316 "trad1.y"
                                          { yyval = yyvsp[-1] ; }
-#line 2093 "trad1.tab.c"
+#line 2086 "trad1.tab.c"
     break;
 
   case 88:
-#line 333 "trad1.y"
+#line 317 "trad1.y"
                                          { yyval.code = yyvsp[0].code;}
-#line 2099 "trad1.tab.c"
+#line 2092 "trad1.tab.c"
     break;
 
   case 89:
-#line 337 "trad1.y"
+#line 321 "trad1.y"
                                            {if (yyvsp[0].code == NULL){
                                                     sprintf (temp, "%s", yyvsp[-1].code);
                                                 } else {
                                                     sprintf (temp, "(aref %s %s)", yyvsp[-1].code, yyvsp[0].code);
                                                 }
                                                 yyval.code = gen_code (temp); }
-#line 2110 "trad1.tab.c"
+#line 2103 "trad1.tab.c"
     break;
 
   case 90:
-#line 345 "trad1.y"
+#line 329 "trad1.y"
                                                { yyval.code = NULL; }
-#line 2116 "trad1.tab.c"
+#line 2109 "trad1.tab.c"
     break;
 
   case 91:
-#line 346 "trad1.y"
+#line 330 "trad1.y"
                                                { sprintf(temp, "%d", yyvsp[-1].value); yyval.code = gen_code(temp);}
-#line 2122 "trad1.tab.c"
+#line 2115 "trad1.tab.c"
     break;
 
   case 92:
-#line 349 "trad1.y"
+#line 333 "trad1.y"
                                                         { sprintf(temp,"(%s %s)", yyvsp[-3].code, yyvsp[-1].code);
                                                             yyval.code = gen_code(temp);
                                                         }
-#line 2130 "trad1.tab.c"
+#line 2123 "trad1.tab.c"
     break;
 
   case 93:
-#line 354 "trad1.y"
+#line 338 "trad1.y"
                                                         { yyval.code = ""; }
-#line 2136 "trad1.tab.c"
+#line 2129 "trad1.tab.c"
     break;
 
   case 94:
-#line 355 "trad1.y"
+#line 339 "trad1.y"
                                                        {   if( yyvsp[0].code == NULL)    {
                                                                 sprintf(temp, "(%s)",  yyvsp[-1].code);
                                                             } else{
@@ -2144,23 +2137,23 @@ yyreduce:
                                                             }
                                                             yyval.code = gen_code(temp);
                                                         }
-#line 2148 "trad1.tab.c"
+#line 2141 "trad1.tab.c"
     break;
 
   case 95:
-#line 364 "trad1.y"
+#line 348 "trad1.y"
                                            { yyval.code = NULL; }
-#line 2154 "trad1.tab.c"
+#line 2147 "trad1.tab.c"
     break;
 
   case 96:
-#line 365 "trad1.y"
+#line 349 "trad1.y"
                                                                 { yyval.code = yyvsp[0].code; }
-#line 2160 "trad1.tab.c"
+#line 2153 "trad1.tab.c"
     break;
 
 
-#line 2164 "trad1.tab.c"
+#line 2157 "trad1.tab.c"
 
       default: break;
     }
@@ -2392,7 +2385,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 369 "trad1.y"
+#line 353 "trad1.y"
                             // SECCION 4    Codigo en C
 
 int n_line = 1 ;

@@ -217,21 +217,14 @@ declaraciones: INTEGER IDENTIF restVar restDeclaraciones    { if ($3.value==0){
                 ;
 
 restDeclaraciones:                                                  { $$.code = ""; }
-                    | ',' IDENTIF restVar restDeclaraciones     { if ($3.value==0){
-                                                                        sprintf(temp, " (setq %s %s)%s", $2.code, $3.code, $4.code);
-                                                                    } else {
-                                                                        sprintf(temp, " (setq %s %s)%s", $2.code, $3.code, $4.code);
-                                                                    }
-                                                                    $$.code = gen_code(temp);
+                    | ',' IDENTIF restVar restDeclaraciones     { sprintf(temp, " (setq %s %s)%s", $2.code, $3.code, $4.code);
+                                                                  $$.code = gen_code(temp);
                                                                 }
                     ;
 
-restVar:                        { $$.value = 0; 
-                                    $$.code = "0";}
-            | '=' expresion     { $$.value = 0; 
-                                    $$.code = $2.code;}
-            | '[' NUMBER ']'    {  $$.value = 1;
-                                    sprintf(temp, "(make-array %d)", $2.value);
+restVar:                        { $$.code = "0";}
+            | '=' expresion     { $$.code = $2.code;}
+            | '[' NUMBER ']'    { sprintf(temp, "(make-array %d)", $2.value);
 								    $$.code = gen_code(temp); }
             ;
 
@@ -258,13 +251,11 @@ sentenciaIF: IF '(' expresion  ')' '{'     {  printf("(if %s\n(progn ", $3.code)
 
 restoIF:                        { printf(")\n"); }
         | ELSE '{'              { printf("(progn "); }
-            recSentenciaCond    { ; } //TODO: comprobar que se coloca bien el paréntesis NO LO HACE
+            recSentenciaCond    { ; }
                                 { printf(")\n"); }
         ;
 
 
-
-/*TODO: COMPROBAR FUNCIONAMIENTO Y ESTRUCTRURA DE sentenciaFOR*/
 sentenciaFOR: FOR '(' declaracionFor ';' expresion ';' asignacion ')' '{'    {printf("(loop while %s do \n", $5.code);}
                 recSentenciaCond                                                        { ; }
                                                                                     {printf("%s\n)\n",$7.code);}  
@@ -274,13 +265,6 @@ sentenciaFOR: FOR '(' declaracionFor ';' expresion ';' asignacion ')' '{'    {pr
 declaracionFor: INTEGER IDENTIF restVar     {  sprintf(temp,"(setq %s %s)%s\n", $2.code, $3.code, $3.code);
                                             $$.code = gen_code(temp); }
                 ;
-
-
-
-/*TODO: COMPROBAR ESTRUCTURA increaseDecrease
-increaseDecrease: IDENTIF '=' expresion {sprintf(temp, "(setq %s %s)", $1.code, $3.code) ;
-                                           $$.code = gen_code (temp) ;}
-                ;*/
 
 printRec:                               { $$.code = NULL; }
             | ',' expresion printRec    { if ($3.code)
