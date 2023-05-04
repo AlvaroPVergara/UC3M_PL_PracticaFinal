@@ -294,9 +294,16 @@ expresionBool: termino                     { $$ = $1 ; }
                                         $$.code = gen_code (temp) ; }
             | expresionBool GEQ expresionBool  { sprintf(temp, "(>= %s %s)", $1.code, $3.code) ;
                                         $$.code = gen_code (temp) ; }
-            /*| expresionAric                    { sprintf(temp, "(/= 0 %s)", $1.code) ;
-                                        $$.code = gen_code (temp) ;}*/ 
-            //TODO: Tratar las traducciones
+                                        
+            // Arithmetic expressions tranlsated to boolean expressions
+            |   expresionBool '+' expresionBool  { sprintf (temp, "(/= 0 (+ %s %s))", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; }
+            |   expresionBool '-' expresionBool  { sprintf (temp, "(/= 0 (- %s %s))", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; }
+            |   expresionBool '*' expresionBool  { sprintf (temp, "(/= 0 (* %s %s))", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; }
+            |   expresionBool '/' expresionBool  { sprintf (temp, "(/= 0 (/ %s %s))", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; } 
             ;
                 
 expresionAric: termino                     { $$ = $1 ; }
@@ -307,6 +314,24 @@ expresionAric: termino                     { $$ = $1 ; }
             |   expresionAric '*' expresionAric  { sprintf (temp, "(* %s %s)", $1.code, $3.code) ;
                                         $$.code = gen_code (temp) ; }
             |   expresionAric '/' expresionAric  { sprintf (temp, "(/ %s %s)", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; }
+                                        
+            // Boolean expressions translated to aricmetic expressions
+            | expresionAric AND expresionAric  { sprintf(temp, "(if (and %s %s) 1 0)", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; }
+            | expresionAric OR expresionAric   { sprintf(temp, "(if (or %s %s) 1 0)", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; }
+            | expresionAric NEQ expresionAric  { sprintf(temp, "(if (/= %s %s) 1 0)", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; }
+            | expresionAric EQ expresionAric   { sprintf(temp, "(if (= %s %s) 1 0)", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; }
+            | expresionAric '<' expresionAric  { sprintf(temp, "(if (< %s %s) 1 0)", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; }
+            | expresionAric LEQ expresionAric  { sprintf(temp, "(if (<= %s %s) 1 0)", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; }
+            | expresionAric '>' expresionAric  { sprintf(temp, "(if (> %s %s) 1 0)", $1.code, $3.code) ;
+                                        $$.code = gen_code (temp) ; }
+            | expresionAric GEQ expresionAric  { sprintf(temp, "(if (>= %s %s) 1 0)", $1.code, $3.code) ;
                                         $$.code = gen_code (temp) ; }
             ;
 
