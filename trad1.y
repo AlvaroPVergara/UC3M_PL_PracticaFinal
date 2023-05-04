@@ -249,7 +249,7 @@ asignacion: IDENTIF '[' NUMBER ']' '=' expresionAric    {  if ($2.code == NULL){
                                                         }
                                                             $$.code = gen_code(temp);
                                                         }
-            '=' asignacionMultiple                      {  
+            '=' asignacionMultipleRec                      {  
                                                             if ($5.value == -1){
                                                                 // Function
                                                                 sprintf (temp, "%s %s)",$3.code, $5.code);
@@ -258,6 +258,7 @@ asignacion: IDENTIF '[' NUMBER ']' '=' expresionAric    {  if ($2.code == NULL){
                                                                 if ($5.value != identif_count) {
                                                                     //n values missmatch
                                                                     yyerror("Missmatch on multiple assignation");
+                                                                    YYABORT;
                                                                 } else {
                                                                     sprintf(temp, "%s (values %s))", $3.code, $5.code);
                                                                 }
@@ -275,22 +276,22 @@ identifRec:                                 { $$.code = "";
                                             }
             ;
 
-asignacionMultiple: funcionLlamada                      { $$.code = $1.code;
-                                                            $$.value = -1;
-                                                        }
-                    | asignacionMultipleValorRec        { $$.code = $1.code;
-                                                        $$.value = $1.value;
-                                                        }
-                     ;
 
-asignacionMultipleValorRec: asignacionMultipleValor     { $$.code = $1.code;
-                                                          $$.value = 1;
+asignacionMultipleRec:      expresion     { $$.code = $1.code;
+                                            if ($1.value == -1){
+                                                $$.value = -1;
+                                            }
+                                            $$.value = 1;
                                                         }
-                            | asignacionMultipleValor ',' asignacionMultipleValorRec {   
-                                                                                        sprintf(temp,"%s %s", $1.code, $3.code);
-                                                                                        $$.value = $3.value + 1;
-                                                                                        $$.code = gen_code(temp);
-                                                                                     }
+                        | expresion ',' asignacionMultipleRec {   
+                                                                if($1.value == -1 || $3.value == -1){
+                                                                    yyerror("Detected function on multiple assignation with other assignable values");
+                                                                    YYABORT;
+                                                                }
+                                                                sprintf(temp,"%s %s", $1.code, $3.code);
+                                                                $$.value = $3.value + 1;
+                                                                $$.code = gen_code(temp);
+                                                                }
                             ;
                                                             
 
@@ -585,11 +586,14 @@ termino:        operando                           { $$ = $1 ; }
                                                      $$.code = gen_code (temp) ; }    
             ;
 
-operando:      varIdentf                 { $$.code = $1.code ; }
+operando:      varIdentf                 { $$.code = $1.code ; 
+                                            $$.value = 0;}
             |   NUMBER                   { sprintf (temp, "%d", $1.value) ;
-                                           $$.code = gen_code (temp) ; }
+                                           $$.code = gen_code (temp) ; 
+                                           $$.value = 0;}
             |   '(' expresionAric ')'     { $$ = $2 ; }
-            | funcionLlamada             { $$.code = $1.code;}
+            | funcionLlamada             { $$.code = $1.code;
+                                            $$.value = -1;}
             ;
 
 

@@ -7,12 +7,12 @@ patatofuncion (int var1, int var2) {
 	puts("Cabezacubo");
 	int vaya_la_cobaya[32];
 	vaya_la_cobaya [23] = 5 + 2;
+
+	 i = i + 1;
 }
 
 
-
 main(){
-	vaya = 5 + 3 * 7;
 	for (int i = 0; i < vaya_la_cobaya; i = i + 1)
 	{
 		if (a == 0 ) {
