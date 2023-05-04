@@ -1,0 +1,2892 @@
+Grammar
+
+    0 $accept: axioma $end
+
+    1 axioma: declaracionesGlob funcionesDef mainDef
+
+    2 declaracionesGlob: %empty
+    3                  | declaracionesGlobRec ';' declaracionesGlob
+
+    4 declaracionesGlobRec: INTEGER IDENTIF restGlobVar restDeclaracionesGlob
+
+    5 restDeclaracionesGlob: %empty
+    6                      | ',' IDENTIF restGlobVar restDeclaracionesGlob
+
+    7 restGlobVar: %empty
+    8            | '=' NUMBER
+    9            | '[' NUMBER ']'
+
+   10 funcionesDef: %empty
+
+   11 $@1: %empty
+
+   12 $@2: %empty
+
+   13 $@3: %empty
+
+   14 funcionesDef: IDENTIF '(' funcionArgs ')' '{' $@1 recSentenciaFin $@2 $@3 funcionesDef
+
+   15 funcionArgs: %empty
+   16            | INTEGER varIdentf recArgFunct
+
+   17 recArgFunct: %empty
+   18            | ',' funcionArgs
+
+   19 $@4: %empty
+
+   20 $@5: %empty
+
+   21 mainDef: MAIN '(' ')' '{' $@4 recSentenciaFin $@5
+
+   22 recSentenciaFin: '}'
+   23                | RETURN expresionAric ';' '}'
+
+   24 $@6: %empty
+
+   25 recSentenciaFin: RETURN expresionAric ';' $@6 recSentenciaNoFin
+
+   26 $@7: %empty
+
+   27 recSentenciaFin: sentencia $@7 recSentenciaFin
+
+   28 recSentenciaNoFin: RETURN expresionAric ';' '}'
+
+   29 $@8: %empty
+
+   30 recSentenciaNoFin: RETURN expresionAric ';' $@8 recSentenciaNoFin
+
+   31 $@9: %empty
+
+   32 recSentenciaNoFin: sentencia $@9 recSentenciaFin
+
+   33 recSentenciaCond: '}'
+
+   34 $@10: %empty
+
+   35 recSentenciaCond: sentencia $@10 recSentenciaCond
+
+   36 $@11: %empty
+
+   37 recSentenciaCond: RETURN expresionAric ';' $@11 recSentenciaCond
+
+   38 sentencia: declaraciones ';'
+   39          | asignacion ';'
+   40          | PRINTF '(' STRING ',' expresion printRec ')' ';'
+   41          | PUTS '(' STRING ')' ';'
+   42          | sentenciaWhile
+   43          | sentenciaIF
+   44          | sentenciaFOR
+   45          | funcionLlamada ';'
+
+   46 declaraciones: INTEGER IDENTIF restVar restDeclaraciones
+
+   47 restDeclaraciones: %empty
+   48                  | ',' IDENTIF restVar restDeclaraciones
+
+   49 restVar: %empty
+   50        | '=' expresionAric
+   51        | '[' NUMBER ']'
+
+   52 asignacion: IDENTIF '[' NUMBER ']' '=' expresionAric
+
+   53 @12: %empty
+
+   54 asignacion: IDENTIF identifRec @12 '=' asignacionMultiple
+
+   55 identifRec: %empty
+   56           | ',' IDENTIF identifRec
+
+   57 asignacionMultiple: funcionLlamada
+   58                   | asignacionMultipleValorRec
+
+   59 asignacionMultipleValorRec: asignacionMultipleValor
+   60                           | asignacionMultipleValor ',' asignacionMultipleValorRec
+
+   61 asignacionMultipleValor: varIdentf
+   62                        | NUMBER
+
+   63 $@13: %empty
+
+   64 sentenciaWhile: WHILE '(' expresionBool ')' '{' $@13 recSentenciaCond
+
+   65 $@14: %empty
+
+   66 $@15: %empty
+
+   67 sentenciaIF: IF '(' expresionBool ')' '{' $@14 recSentenciaCond $@15 restoIF
+
+   68 restoIF: %empty
+
+   69 $@16: %empty
+
+   70 $@17: %empty
+
+   71 restoIF: ELSE '{' $@16 recSentenciaCond $@17
+
+   72 $@18: %empty
+
+   73 $@19: %empty
+
+   74 sentenciaFOR: FOR '(' declaracionFor ';' expresionBool ';' asignacion ')' '{' $@18 recSentenciaCond $@19
+
+   75 declaracionFor: INTEGER IDENTIF restVar
+
+   76 printRec: %empty
+   77         | ',' expresion printRec
+
+   78 expresionBool: expresion
+
+   79 expresionAric: expresion
+
+   80 expresion: termino
+   81          | expresion AND expresion
+   82          | expresion OR expresion
+   83          | expresion NEQ expresion
+   84          | expresion EQ expresion
+   85          | expresion '<' expresion
+   86          | expresion LEQ expresion
+   87          | expresion '>' expresion
+   88          | expresion GEQ expresion
+   89          | expresion '+' expresion
+   90          | expresion '-' expresion
+   91          | expresion '*' expresion
+   92          | expresion '/' expresion
+
+   93 termino: operando
+   94        | '+' operando
+   95        | '-' operando
+
+   96 operando: varIdentf
+   97         | NUMBER
+   98         | '(' expresionAric ')'
+   99         | funcionLlamada
+
+  100 varIdentf: IDENTIF isVector
+
+  101 isVector: %empty
+  102         | '[' NUMBER ']'
+
+  103 funcionLlamada: IDENTIF '(' funcionArgsLlamada ')'
+
+  104 funcionArgsLlamada: %empty
+  105                   | expresionAric recArgFunctLlamada
+
+  106 recArgFunctLlamada: %empty
+  107                   | ',' funcionArgsLlamada
+
+
+Terminals, with rules where they appear
+
+    $end (0) 0
+    '(' (40) 14 21 40 41 64 67 74 98 103
+    ')' (41) 14 21 40 41 64 67 74 98 103
+    '*' (42) 91
+    '+' (43) 89 94
+    ',' (44) 6 18 40 48 56 60 77 107
+    '-' (45) 90 95
+    '/' (47) 92
+    ';' (59) 3 23 25 28 30 37 38 39 40 41 45 74
+    '<' (60) 85
+    '=' (61) 8 50 52 54
+    '>' (62) 87
+    '[' (91) 9 51 52 102
+    ']' (93) 9 51 52 102
+    '{' (123) 14 21 64 67 71 74
+    '}' (125) 22 23 28 33
+    error (256)
+    NUMBER (258) 8 9 51 52 62 97 102
+    IDENTIF (259) 4 6 14 46 48 52 54 56 75 100 103
+    INTEGER (260) 4 16 46 75
+    STRING (261) 40 41
+    MAIN (262) 21
+    WHILE (263) 64
+    FOR (264) 74
+    IF (265) 67
+    ELSE (266) 71
+    PUTS (267) 41
+    PRINTF (268) 40
+    AND (269) 81
+    OR (270) 82
+    LEQ (271) 86
+    GEQ (272) 88
+    EQ (273) 84
+    NEQ (274) 83
+    RETURN (275) 23 25 28 30 37
+    UNARY_SIGN (276)
+
+
+Nonterminals, with rules where they appear
+
+    $accept (37)
+        on left: 0
+    axioma (38)
+        on left: 1
+        on right: 0
+    declaracionesGlob (39)
+        on left: 2 3
+        on right: 1 3
+    declaracionesGlobRec (40)
+        on left: 4
+        on right: 3
+    restDeclaracionesGlob (41)
+        on left: 5 6
+        on right: 4 6
+    restGlobVar (42)
+        on left: 7 8 9
+        on right: 4 6
+    funcionesDef (43)
+        on left: 10 14
+        on right: 1 14
+    $@1 (44)
+        on left: 11
+        on right: 14
+    $@2 (45)
+        on left: 12
+        on right: 14
+    $@3 (46)
+        on left: 13
+        on right: 14
+    funcionArgs (47)
+        on left: 15 16
+        on right: 14 18
+    recArgFunct (48)
+        on left: 17 18
+        on right: 16
+    mainDef (49)
+        on left: 21
+        on right: 1
+    $@4 (50)
+        on left: 19
+        on right: 21
+    $@5 (51)
+        on left: 20
+        on right: 21
+    recSentenciaFin (52)
+        on left: 22 23 25 27
+        on right: 14 21 27 32
+    $@6 (53)
+        on left: 24
+        on right: 25
+    $@7 (54)
+        on left: 26
+        on right: 27
+    recSentenciaNoFin (55)
+        on left: 28 30 32
+        on right: 25 30
+    $@8 (56)
+        on left: 29
+        on right: 30
+    $@9 (57)
+        on left: 31
+        on right: 32
+    recSentenciaCond (58)
+        on left: 33 35 37
+        on right: 35 37 64 67 71 74
+    $@10 (59)
+        on left: 34
+        on right: 35
+    $@11 (60)
+        on left: 36
+        on right: 37
+    sentencia (61)
+        on left: 38 39 40 41 42 43 44 45
+        on right: 27 32 35
+    declaraciones (62)
+        on left: 46
+        on right: 38
+    restDeclaraciones (63)
+        on left: 47 48
+        on right: 46 48
+    restVar (64)
+        on left: 49 50 51
+        on right: 46 48 75
+    asignacion (65)
+        on left: 52 54
+        on right: 39 74
+    @12 (66)
+        on left: 53
+        on right: 54
+    identifRec (67)
+        on left: 55 56
+        on right: 54 56
+    asignacionMultiple (68)
+        on left: 57 58
+        on right: 54
+    asignacionMultipleValorRec (69)
+        on left: 59 60
+        on right: 58 60
+    asignacionMultipleValor (70)
+        on left: 61 62
+        on right: 59 60
+    sentenciaWhile (71)
+        on left: 64
+        on right: 42
+    $@13 (72)
+        on left: 63
+        on right: 64
+    sentenciaIF (73)
+        on left: 67
+        on right: 43
+    $@14 (74)
+        on left: 65
+        on right: 67
+    $@15 (75)
+        on left: 66
+        on right: 67
+    restoIF (76)
+        on left: 68 71
+        on right: 67
+    $@16 (77)
+        on left: 69
+        on right: 71
+    $@17 (78)
+        on left: 70
+        on right: 71
+    sentenciaFOR (79)
+        on left: 74
+        on right: 44
+    $@18 (80)
+        on left: 72
+        on right: 74
+    $@19 (81)
+        on left: 73
+        on right: 74
+    declaracionFor (82)
+        on left: 75
+        on right: 74
+    printRec (83)
+        on left: 76 77
+        on right: 40 77
+    expresionBool (84)
+        on left: 78
+        on right: 64 67 74
+    expresionAric (85)
+        on left: 79
+        on right: 23 25 28 30 37 50 52 98 105
+    expresion (86)
+        on left: 80 81 82 83 84 85 86 87 88 89 90 91 92
+        on right: 40 77 78 79 81 82 83 84 85 86 87 88 89 90 91 92
+    termino (87)
+        on left: 93 94 95
+        on right: 80
+    operando (88)
+        on left: 96 97 98 99
+        on right: 93 94 95
+    varIdentf (89)
+        on left: 100
+        on right: 16 61 96
+    isVector (90)
+        on left: 101 102
+        on right: 100
+    funcionLlamada (91)
+        on left: 103
+        on right: 45 57 99
+    funcionArgsLlamada (92)
+        on left: 104 105
+        on right: 103 107
+    recArgFunctLlamada (93)
+        on left: 106 107
+        on right: 105
+
+
+State 0
+
+    0 $accept: . axioma $end
+
+    INTEGER  shift, and go to state 1
+
+    $default  reduce using rule 2 (declaracionesGlob)
+
+    axioma                go to state 2
+    declaracionesGlob     go to state 3
+    declaracionesGlobRec  go to state 4
+
+
+State 1
+
+    4 declaracionesGlobRec: INTEGER . IDENTIF restGlobVar restDeclaracionesGlob
+
+    IDENTIF  shift, and go to state 5
+
+
+State 2
+
+    0 $accept: axioma . $end
+
+    $end  shift, and go to state 6
+
+
+State 3
+
+    1 axioma: declaracionesGlob . funcionesDef mainDef
+
+    IDENTIF  shift, and go to state 7
+
+    $default  reduce using rule 10 (funcionesDef)
+
+    funcionesDef  go to state 8
+
+
+State 4
+
+    3 declaracionesGlob: declaracionesGlobRec . ';' declaracionesGlob
+
+    ';'  shift, and go to state 9
+
+
+State 5
+
+    4 declaracionesGlobRec: INTEGER IDENTIF . restGlobVar restDeclaracionesGlob
+
+    '='  shift, and go to state 10
+    '['  shift, and go to state 11
+
+    $default  reduce using rule 7 (restGlobVar)
+
+    restGlobVar  go to state 12
+
+
+State 6
+
+    0 $accept: axioma $end .
+
+    $default  accept
+
+
+State 7
+
+   14 funcionesDef: IDENTIF . '(' funcionArgs ')' '{' $@1 recSentenciaFin $@2 $@3 funcionesDef
+
+    '('  shift, and go to state 13
+
+
+State 8
+
+    1 axioma: declaracionesGlob funcionesDef . mainDef
+
+    MAIN  shift, and go to state 14
+
+    mainDef  go to state 15
+
+
+State 9
+
+    3 declaracionesGlob: declaracionesGlobRec ';' . declaracionesGlob
+
+    INTEGER  shift, and go to state 1
+
+    $default  reduce using rule 2 (declaracionesGlob)
+
+    declaracionesGlob     go to state 16
+    declaracionesGlobRec  go to state 4
+
+
+State 10
+
+    8 restGlobVar: '=' . NUMBER
+
+    NUMBER  shift, and go to state 17
+
+
+State 11
+
+    9 restGlobVar: '[' . NUMBER ']'
+
+    NUMBER  shift, and go to state 18
+
+
+State 12
+
+    4 declaracionesGlobRec: INTEGER IDENTIF restGlobVar . restDeclaracionesGlob
+
+    ','  shift, and go to state 19
+
+    $default  reduce using rule 5 (restDeclaracionesGlob)
+
+    restDeclaracionesGlob  go to state 20
+
+
+State 13
+
+   14 funcionesDef: IDENTIF '(' . funcionArgs ')' '{' $@1 recSentenciaFin $@2 $@3 funcionesDef
+
+    INTEGER  shift, and go to state 21
+
+    $default  reduce using rule 15 (funcionArgs)
+
+    funcionArgs  go to state 22
+
+
+State 14
+
+   21 mainDef: MAIN . '(' ')' '{' $@4 recSentenciaFin $@5
+
+    '('  shift, and go to state 23
+
+
+State 15
+
+    1 axioma: declaracionesGlob funcionesDef mainDef .
+
+    $default  reduce using rule 1 (axioma)
+
+
+State 16
+
+    3 declaracionesGlob: declaracionesGlobRec ';' declaracionesGlob .
+
+    $default  reduce using rule 3 (declaracionesGlob)
+
+
+State 17
+
+    8 restGlobVar: '=' NUMBER .
+
+    $default  reduce using rule 8 (restGlobVar)
+
+
+State 18
+
+    9 restGlobVar: '[' NUMBER . ']'
+
+    ']'  shift, and go to state 24
+
+
+State 19
+
+    6 restDeclaracionesGlob: ',' . IDENTIF restGlobVar restDeclaracionesGlob
+
+    IDENTIF  shift, and go to state 25
+
+
+State 20
+
+    4 declaracionesGlobRec: INTEGER IDENTIF restGlobVar restDeclaracionesGlob .
+
+    $default  reduce using rule 4 (declaracionesGlobRec)
+
+
+State 21
+
+   16 funcionArgs: INTEGER . varIdentf recArgFunct
+
+    IDENTIF  shift, and go to state 26
+
+    varIdentf  go to state 27
+
+
+State 22
+
+   14 funcionesDef: IDENTIF '(' funcionArgs . ')' '{' $@1 recSentenciaFin $@2 $@3 funcionesDef
+
+    ')'  shift, and go to state 28
+
+
+State 23
+
+   21 mainDef: MAIN '(' . ')' '{' $@4 recSentenciaFin $@5
+
+    ')'  shift, and go to state 29
+
+
+State 24
+
+    9 restGlobVar: '[' NUMBER ']' .
+
+    $default  reduce using rule 9 (restGlobVar)
+
+
+State 25
+
+    6 restDeclaracionesGlob: ',' IDENTIF . restGlobVar restDeclaracionesGlob
+
+    '='  shift, and go to state 10
+    '['  shift, and go to state 11
+
+    $default  reduce using rule 7 (restGlobVar)
+
+    restGlobVar  go to state 30
+
+
+State 26
+
+  100 varIdentf: IDENTIF . isVector
+
+    '['  shift, and go to state 31
+
+    $default  reduce using rule 101 (isVector)
+
+    isVector  go to state 32
+
+
+State 27
+
+   16 funcionArgs: INTEGER varIdentf . recArgFunct
+
+    ','  shift, and go to state 33
+
+    $default  reduce using rule 17 (recArgFunct)
+
+    recArgFunct  go to state 34
+
+
+State 28
+
+   14 funcionesDef: IDENTIF '(' funcionArgs ')' . '{' $@1 recSentenciaFin $@2 $@3 funcionesDef
+
+    '{'  shift, and go to state 35
+
+
+State 29
+
+   21 mainDef: MAIN '(' ')' . '{' $@4 recSentenciaFin $@5
+
+    '{'  shift, and go to state 36
+
+
+State 30
+
+    6 restDeclaracionesGlob: ',' IDENTIF restGlobVar . restDeclaracionesGlob
+
+    ','  shift, and go to state 19
+
+    $default  reduce using rule 5 (restDeclaracionesGlob)
+
+    restDeclaracionesGlob  go to state 37
+
+
+State 31
+
+  102 isVector: '[' . NUMBER ']'
+
+    NUMBER  shift, and go to state 38
+
+
+State 32
+
+  100 varIdentf: IDENTIF isVector .
+
+    $default  reduce using rule 100 (varIdentf)
+
+
+State 33
+
+   18 recArgFunct: ',' . funcionArgs
+
+    INTEGER  shift, and go to state 21
+
+    $default  reduce using rule 15 (funcionArgs)
+
+    funcionArgs  go to state 39
+
+
+State 34
+
+   16 funcionArgs: INTEGER varIdentf recArgFunct .
+
+    $default  reduce using rule 16 (funcionArgs)
+
+
+State 35
+
+   14 funcionesDef: IDENTIF '(' funcionArgs ')' '{' . $@1 recSentenciaFin $@2 $@3 funcionesDef
+
+    $default  reduce using rule 11 ($@1)
+
+    $@1  go to state 40
+
+
+State 36
+
+   21 mainDef: MAIN '(' ')' '{' . $@4 recSentenciaFin $@5
+
+    $default  reduce using rule 19 ($@4)
+
+    $@4  go to state 41
+
+
+State 37
+
+    6 restDeclaracionesGlob: ',' IDENTIF restGlobVar restDeclaracionesGlob .
+
+    $default  reduce using rule 6 (restDeclaracionesGlob)
+
+
+State 38
+
+  102 isVector: '[' NUMBER . ']'
+
+    ']'  shift, and go to state 42
+
+
+State 39
+
+   18 recArgFunct: ',' funcionArgs .
+
+    $default  reduce using rule 18 (recArgFunct)
+
+
+State 40
+
+   14 funcionesDef: IDENTIF '(' funcionArgs ')' '{' $@1 . recSentenciaFin $@2 $@3 funcionesDef
+
+    IDENTIF  shift, and go to state 43
+    INTEGER  shift, and go to state 44
+    WHILE    shift, and go to state 45
+    FOR      shift, and go to state 46
+    IF       shift, and go to state 47
+    PUTS     shift, and go to state 48
+    PRINTF   shift, and go to state 49
+    RETURN   shift, and go to state 50
+    '}'      shift, and go to state 51
+
+    recSentenciaFin  go to state 52
+    sentencia        go to state 53
+    declaraciones    go to state 54
+    asignacion       go to state 55
+    sentenciaWhile   go to state 56
+    sentenciaIF      go to state 57
+    sentenciaFOR     go to state 58
+    funcionLlamada   go to state 59
+
+
+State 41
+
+   21 mainDef: MAIN '(' ')' '{' $@4 . recSentenciaFin $@5
+
+    IDENTIF  shift, and go to state 43
+    INTEGER  shift, and go to state 44
+    WHILE    shift, and go to state 45
+    FOR      shift, and go to state 46
+    IF       shift, and go to state 47
+    PUTS     shift, and go to state 48
+    PRINTF   shift, and go to state 49
+    RETURN   shift, and go to state 50
+    '}'      shift, and go to state 51
+
+    recSentenciaFin  go to state 60
+    sentencia        go to state 53
+    declaraciones    go to state 54
+    asignacion       go to state 55
+    sentenciaWhile   go to state 56
+    sentenciaIF      go to state 57
+    sentenciaFOR     go to state 58
+    funcionLlamada   go to state 59
+
+
+State 42
+
+  102 isVector: '[' NUMBER ']' .
+
+    $default  reduce using rule 102 (isVector)
+
+
+State 43
+
+   52 asignacion: IDENTIF . '[' NUMBER ']' '=' expresionAric
+   54           | IDENTIF . identifRec @12 '=' asignacionMultiple
+  103 funcionLlamada: IDENTIF . '(' funcionArgsLlamada ')'
+
+    ','  shift, and go to state 61
+    '['  shift, and go to state 62
+    '('  shift, and go to state 63
+
+    $default  reduce using rule 55 (identifRec)
+
+    identifRec  go to state 64
+
+
+State 44
+
+   46 declaraciones: INTEGER . IDENTIF restVar restDeclaraciones
+
+    IDENTIF  shift, and go to state 65
+
+
+State 45
+
+   64 sentenciaWhile: WHILE . '(' expresionBool ')' '{' $@13 recSentenciaCond
+
+    '('  shift, and go to state 66
+
+
+State 46
+
+   74 sentenciaFOR: FOR . '(' declaracionFor ';' expresionBool ';' asignacion ')' '{' $@18 recSentenciaCond $@19
+
+    '('  shift, and go to state 67
+
+
+State 47
+
+   67 sentenciaIF: IF . '(' expresionBool ')' '{' $@14 recSentenciaCond $@15 restoIF
+
+    '('  shift, and go to state 68
+
+
+State 48
+
+   41 sentencia: PUTS . '(' STRING ')' ';'
+
+    '('  shift, and go to state 69
+
+
+State 49
+
+   40 sentencia: PRINTF . '(' STRING ',' expresion printRec ')' ';'
+
+    '('  shift, and go to state 70
+
+
+State 50
+
+   23 recSentenciaFin: RETURN . expresionAric ';' '}'
+   25                | RETURN . expresionAric ';' $@6 recSentenciaNoFin
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresionAric   go to state 76
+    expresion       go to state 77
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 51
+
+   22 recSentenciaFin: '}' .
+
+    $default  reduce using rule 22 (recSentenciaFin)
+
+
+State 52
+
+   14 funcionesDef: IDENTIF '(' funcionArgs ')' '{' $@1 recSentenciaFin . $@2 $@3 funcionesDef
+
+    $default  reduce using rule 12 ($@2)
+
+    $@2  go to state 82
+
+
+State 53
+
+   27 recSentenciaFin: sentencia . $@7 recSentenciaFin
+
+    $default  reduce using rule 26 ($@7)
+
+    $@7  go to state 83
+
+
+State 54
+
+   38 sentencia: declaraciones . ';'
+
+    ';'  shift, and go to state 84
+
+
+State 55
+
+   39 sentencia: asignacion . ';'
+
+    ';'  shift, and go to state 85
+
+
+State 56
+
+   42 sentencia: sentenciaWhile .
+
+    $default  reduce using rule 42 (sentencia)
+
+
+State 57
+
+   43 sentencia: sentenciaIF .
+
+    $default  reduce using rule 43 (sentencia)
+
+
+State 58
+
+   44 sentencia: sentenciaFOR .
+
+    $default  reduce using rule 44 (sentencia)
+
+
+State 59
+
+   45 sentencia: funcionLlamada . ';'
+
+    ';'  shift, and go to state 86
+
+
+State 60
+
+   21 mainDef: MAIN '(' ')' '{' $@4 recSentenciaFin . $@5
+
+    $default  reduce using rule 20 ($@5)
+
+    $@5  go to state 87
+
+
+State 61
+
+   56 identifRec: ',' . IDENTIF identifRec
+
+    IDENTIF  shift, and go to state 88
+
+
+State 62
+
+   52 asignacion: IDENTIF '[' . NUMBER ']' '=' expresionAric
+
+    NUMBER  shift, and go to state 89
+
+
+State 63
+
+  103 funcionLlamada: IDENTIF '(' . funcionArgsLlamada ')'
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    $default  reduce using rule 104 (funcionArgsLlamada)
+
+    expresionAric       go to state 90
+    expresion           go to state 77
+    termino             go to state 78
+    operando            go to state 79
+    varIdentf           go to state 80
+    funcionLlamada      go to state 81
+    funcionArgsLlamada  go to state 91
+
+
+State 64
+
+   54 asignacion: IDENTIF identifRec . @12 '=' asignacionMultiple
+
+    $default  reduce using rule 53 (@12)
+
+    @12  go to state 92
+
+
+State 65
+
+   46 declaraciones: INTEGER IDENTIF . restVar restDeclaraciones
+
+    '='  shift, and go to state 93
+    '['  shift, and go to state 94
+
+    $default  reduce using rule 49 (restVar)
+
+    restVar  go to state 95
+
+
+State 66
+
+   64 sentenciaWhile: WHILE '(' . expresionBool ')' '{' $@13 recSentenciaCond
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresionBool   go to state 96
+    expresion       go to state 97
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 67
+
+   74 sentenciaFOR: FOR '(' . declaracionFor ';' expresionBool ';' asignacion ')' '{' $@18 recSentenciaCond $@19
+
+    INTEGER  shift, and go to state 98
+
+    declaracionFor  go to state 99
+
+
+State 68
+
+   67 sentenciaIF: IF '(' . expresionBool ')' '{' $@14 recSentenciaCond $@15 restoIF
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresionBool   go to state 100
+    expresion       go to state 97
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 69
+
+   41 sentencia: PUTS '(' . STRING ')' ';'
+
+    STRING  shift, and go to state 101
+
+
+State 70
+
+   40 sentencia: PRINTF '(' . STRING ',' expresion printRec ')' ';'
+
+    STRING  shift, and go to state 102
+
+
+State 71
+
+   97 operando: NUMBER .
+
+    $default  reduce using rule 97 (operando)
+
+
+State 72
+
+  100 varIdentf: IDENTIF . isVector
+  103 funcionLlamada: IDENTIF . '(' funcionArgsLlamada ')'
+
+    '['  shift, and go to state 31
+    '('  shift, and go to state 63
+
+    $default  reduce using rule 101 (isVector)
+
+    isVector  go to state 32
+
+
+State 73
+
+   94 termino: '+' . operando
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '('      shift, and go to state 75
+
+    operando        go to state 103
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 74
+
+   95 termino: '-' . operando
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '('      shift, and go to state 75
+
+    operando        go to state 104
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 75
+
+   98 operando: '(' . expresionAric ')'
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresionAric   go to state 105
+    expresion       go to state 77
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 76
+
+   23 recSentenciaFin: RETURN expresionAric . ';' '}'
+   25                | RETURN expresionAric . ';' $@6 recSentenciaNoFin
+
+    ';'  shift, and go to state 106
+
+
+State 77
+
+   79 expresionAric: expresion .
+   81 expresion: expresion . AND expresion
+   82          | expresion . OR expresion
+   83          | expresion . NEQ expresion
+   84          | expresion . EQ expresion
+   85          | expresion . '<' expresion
+   86          | expresion . LEQ expresion
+   87          | expresion . '>' expresion
+   88          | expresion . GEQ expresion
+   89          | expresion . '+' expresion
+   90          | expresion . '-' expresion
+   91          | expresion . '*' expresion
+   92          | expresion . '/' expresion
+
+    AND  shift, and go to state 107
+    OR   shift, and go to state 108
+    LEQ  shift, and go to state 109
+    GEQ  shift, and go to state 110
+    EQ   shift, and go to state 111
+    NEQ  shift, and go to state 112
+    '<'  shift, and go to state 113
+    '>'  shift, and go to state 114
+    '+'  shift, and go to state 115
+    '-'  shift, and go to state 116
+    '*'  shift, and go to state 117
+    '/'  shift, and go to state 118
+
+    $default  reduce using rule 79 (expresionAric)
+
+
+State 78
+
+   80 expresion: termino .
+
+    $default  reduce using rule 80 (expresion)
+
+
+State 79
+
+   93 termino: operando .
+
+    $default  reduce using rule 93 (termino)
+
+
+State 80
+
+   96 operando: varIdentf .
+
+    $default  reduce using rule 96 (operando)
+
+
+State 81
+
+   99 operando: funcionLlamada .
+
+    $default  reduce using rule 99 (operando)
+
+
+State 82
+
+   14 funcionesDef: IDENTIF '(' funcionArgs ')' '{' $@1 recSentenciaFin $@2 . $@3 funcionesDef
+
+    $default  reduce using rule 13 ($@3)
+
+    $@3  go to state 119
+
+
+State 83
+
+   27 recSentenciaFin: sentencia $@7 . recSentenciaFin
+
+    IDENTIF  shift, and go to state 43
+    INTEGER  shift, and go to state 44
+    WHILE    shift, and go to state 45
+    FOR      shift, and go to state 46
+    IF       shift, and go to state 47
+    PUTS     shift, and go to state 48
+    PRINTF   shift, and go to state 49
+    RETURN   shift, and go to state 50
+    '}'      shift, and go to state 51
+
+    recSentenciaFin  go to state 120
+    sentencia        go to state 53
+    declaraciones    go to state 54
+    asignacion       go to state 55
+    sentenciaWhile   go to state 56
+    sentenciaIF      go to state 57
+    sentenciaFOR     go to state 58
+    funcionLlamada   go to state 59
+
+
+State 84
+
+   38 sentencia: declaraciones ';' .
+
+    $default  reduce using rule 38 (sentencia)
+
+
+State 85
+
+   39 sentencia: asignacion ';' .
+
+    $default  reduce using rule 39 (sentencia)
+
+
+State 86
+
+   45 sentencia: funcionLlamada ';' .
+
+    $default  reduce using rule 45 (sentencia)
+
+
+State 87
+
+   21 mainDef: MAIN '(' ')' '{' $@4 recSentenciaFin $@5 .
+
+    $default  reduce using rule 21 (mainDef)
+
+
+State 88
+
+   56 identifRec: ',' IDENTIF . identifRec
+
+    ','  shift, and go to state 61
+
+    $default  reduce using rule 55 (identifRec)
+
+    identifRec  go to state 121
+
+
+State 89
+
+   52 asignacion: IDENTIF '[' NUMBER . ']' '=' expresionAric
+
+    ']'  shift, and go to state 122
+
+
+State 90
+
+  105 funcionArgsLlamada: expresionAric . recArgFunctLlamada
+
+    ','  shift, and go to state 123
+
+    $default  reduce using rule 106 (recArgFunctLlamada)
+
+    recArgFunctLlamada  go to state 124
+
+
+State 91
+
+  103 funcionLlamada: IDENTIF '(' funcionArgsLlamada . ')'
+
+    ')'  shift, and go to state 125
+
+
+State 92
+
+   54 asignacion: IDENTIF identifRec @12 . '=' asignacionMultiple
+
+    '='  shift, and go to state 126
+
+
+State 93
+
+   50 restVar: '=' . expresionAric
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresionAric   go to state 127
+    expresion       go to state 77
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 94
+
+   51 restVar: '[' . NUMBER ']'
+
+    NUMBER  shift, and go to state 128
+
+
+State 95
+
+   46 declaraciones: INTEGER IDENTIF restVar . restDeclaraciones
+
+    ','  shift, and go to state 129
+
+    $default  reduce using rule 47 (restDeclaraciones)
+
+    restDeclaraciones  go to state 130
+
+
+State 96
+
+   64 sentenciaWhile: WHILE '(' expresionBool . ')' '{' $@13 recSentenciaCond
+
+    ')'  shift, and go to state 131
+
+
+State 97
+
+   78 expresionBool: expresion .
+   81 expresion: expresion . AND expresion
+   82          | expresion . OR expresion
+   83          | expresion . NEQ expresion
+   84          | expresion . EQ expresion
+   85          | expresion . '<' expresion
+   86          | expresion . LEQ expresion
+   87          | expresion . '>' expresion
+   88          | expresion . GEQ expresion
+   89          | expresion . '+' expresion
+   90          | expresion . '-' expresion
+   91          | expresion . '*' expresion
+   92          | expresion . '/' expresion
+
+    AND  shift, and go to state 107
+    OR   shift, and go to state 108
+    LEQ  shift, and go to state 109
+    GEQ  shift, and go to state 110
+    EQ   shift, and go to state 111
+    NEQ  shift, and go to state 112
+    '<'  shift, and go to state 113
+    '>'  shift, and go to state 114
+    '+'  shift, and go to state 115
+    '-'  shift, and go to state 116
+    '*'  shift, and go to state 117
+    '/'  shift, and go to state 118
+
+    $default  reduce using rule 78 (expresionBool)
+
+
+State 98
+
+   75 declaracionFor: INTEGER . IDENTIF restVar
+
+    IDENTIF  shift, and go to state 132
+
+
+State 99
+
+   74 sentenciaFOR: FOR '(' declaracionFor . ';' expresionBool ';' asignacion ')' '{' $@18 recSentenciaCond $@19
+
+    ';'  shift, and go to state 133
+
+
+State 100
+
+   67 sentenciaIF: IF '(' expresionBool . ')' '{' $@14 recSentenciaCond $@15 restoIF
+
+    ')'  shift, and go to state 134
+
+
+State 101
+
+   41 sentencia: PUTS '(' STRING . ')' ';'
+
+    ')'  shift, and go to state 135
+
+
+State 102
+
+   40 sentencia: PRINTF '(' STRING . ',' expresion printRec ')' ';'
+
+    ','  shift, and go to state 136
+
+
+State 103
+
+   94 termino: '+' operando .
+
+    $default  reduce using rule 94 (termino)
+
+
+State 104
+
+   95 termino: '-' operando .
+
+    $default  reduce using rule 95 (termino)
+
+
+State 105
+
+   98 operando: '(' expresionAric . ')'
+
+    ')'  shift, and go to state 137
+
+
+State 106
+
+   23 recSentenciaFin: RETURN expresionAric ';' . '}'
+   25                | RETURN expresionAric ';' . $@6 recSentenciaNoFin
+
+    '}'  shift, and go to state 138
+
+    $default  reduce using rule 24 ($@6)
+
+    $@6  go to state 139
+
+
+State 107
+
+   81 expresion: expresion AND . expresion
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresion       go to state 140
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 108
+
+   82 expresion: expresion OR . expresion
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresion       go to state 141
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 109
+
+   86 expresion: expresion LEQ . expresion
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresion       go to state 142
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 110
+
+   88 expresion: expresion GEQ . expresion
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresion       go to state 143
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 111
+
+   84 expresion: expresion EQ . expresion
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresion       go to state 144
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 112
+
+   83 expresion: expresion NEQ . expresion
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresion       go to state 145
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 113
+
+   85 expresion: expresion '<' . expresion
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresion       go to state 146
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 114
+
+   87 expresion: expresion '>' . expresion
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresion       go to state 147
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 115
+
+   89 expresion: expresion '+' . expresion
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresion       go to state 148
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 116
+
+   90 expresion: expresion '-' . expresion
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresion       go to state 149
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 117
+
+   91 expresion: expresion '*' . expresion
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresion       go to state 150
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 118
+
+   92 expresion: expresion '/' . expresion
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresion       go to state 151
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 119
+
+   14 funcionesDef: IDENTIF '(' funcionArgs ')' '{' $@1 recSentenciaFin $@2 $@3 . funcionesDef
+
+    IDENTIF  shift, and go to state 7
+
+    $default  reduce using rule 10 (funcionesDef)
+
+    funcionesDef  go to state 152
+
+
+State 120
+
+   27 recSentenciaFin: sentencia $@7 recSentenciaFin .
+
+    $default  reduce using rule 27 (recSentenciaFin)
+
+
+State 121
+
+   56 identifRec: ',' IDENTIF identifRec .
+
+    $default  reduce using rule 56 (identifRec)
+
+
+State 122
+
+   52 asignacion: IDENTIF '[' NUMBER ']' . '=' expresionAric
+
+    '='  shift, and go to state 153
+
+
+State 123
+
+  107 recArgFunctLlamada: ',' . funcionArgsLlamada
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    $default  reduce using rule 104 (funcionArgsLlamada)
+
+    expresionAric       go to state 90
+    expresion           go to state 77
+    termino             go to state 78
+    operando            go to state 79
+    varIdentf           go to state 80
+    funcionLlamada      go to state 81
+    funcionArgsLlamada  go to state 154
+
+
+State 124
+
+  105 funcionArgsLlamada: expresionAric recArgFunctLlamada .
+
+    $default  reduce using rule 105 (funcionArgsLlamada)
+
+
+State 125
+
+  103 funcionLlamada: IDENTIF '(' funcionArgsLlamada ')' .
+
+    $default  reduce using rule 103 (funcionLlamada)
+
+
+State 126
+
+   54 asignacion: IDENTIF identifRec @12 '=' . asignacionMultiple
+
+    NUMBER   shift, and go to state 155
+    IDENTIF  shift, and go to state 72
+
+    asignacionMultiple          go to state 156
+    asignacionMultipleValorRec  go to state 157
+    asignacionMultipleValor     go to state 158
+    varIdentf                   go to state 159
+    funcionLlamada              go to state 160
+
+
+State 127
+
+   50 restVar: '=' expresionAric .
+
+    $default  reduce using rule 50 (restVar)
+
+
+State 128
+
+   51 restVar: '[' NUMBER . ']'
+
+    ']'  shift, and go to state 161
+
+
+State 129
+
+   48 restDeclaraciones: ',' . IDENTIF restVar restDeclaraciones
+
+    IDENTIF  shift, and go to state 162
+
+
+State 130
+
+   46 declaraciones: INTEGER IDENTIF restVar restDeclaraciones .
+
+    $default  reduce using rule 46 (declaraciones)
+
+
+State 131
+
+   64 sentenciaWhile: WHILE '(' expresionBool ')' . '{' $@13 recSentenciaCond
+
+    '{'  shift, and go to state 163
+
+
+State 132
+
+   75 declaracionFor: INTEGER IDENTIF . restVar
+
+    '='  shift, and go to state 93
+    '['  shift, and go to state 94
+
+    $default  reduce using rule 49 (restVar)
+
+    restVar  go to state 164
+
+
+State 133
+
+   74 sentenciaFOR: FOR '(' declaracionFor ';' . expresionBool ';' asignacion ')' '{' $@18 recSentenciaCond $@19
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresionBool   go to state 165
+    expresion       go to state 97
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 134
+
+   67 sentenciaIF: IF '(' expresionBool ')' . '{' $@14 recSentenciaCond $@15 restoIF
+
+    '{'  shift, and go to state 166
+
+
+State 135
+
+   41 sentencia: PUTS '(' STRING ')' . ';'
+
+    ';'  shift, and go to state 167
+
+
+State 136
+
+   40 sentencia: PRINTF '(' STRING ',' . expresion printRec ')' ';'
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresion       go to state 168
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 137
+
+   98 operando: '(' expresionAric ')' .
+
+    $default  reduce using rule 98 (operando)
+
+
+State 138
+
+   23 recSentenciaFin: RETURN expresionAric ';' '}' .
+
+    $default  reduce using rule 23 (recSentenciaFin)
+
+
+State 139
+
+   25 recSentenciaFin: RETURN expresionAric ';' $@6 . recSentenciaNoFin
+
+    IDENTIF  shift, and go to state 43
+    INTEGER  shift, and go to state 44
+    WHILE    shift, and go to state 45
+    FOR      shift, and go to state 46
+    IF       shift, and go to state 47
+    PUTS     shift, and go to state 48
+    PRINTF   shift, and go to state 49
+    RETURN   shift, and go to state 169
+
+    recSentenciaNoFin  go to state 170
+    sentencia          go to state 171
+    declaraciones      go to state 54
+    asignacion         go to state 55
+    sentenciaWhile     go to state 56
+    sentenciaIF        go to state 57
+    sentenciaFOR       go to state 58
+    funcionLlamada     go to state 59
+
+
+State 140
+
+   81 expresion: expresion . AND expresion
+   81          | expresion AND expresion .
+   82          | expresion . OR expresion
+   83          | expresion . NEQ expresion
+   84          | expresion . EQ expresion
+   85          | expresion . '<' expresion
+   86          | expresion . LEQ expresion
+   87          | expresion . '>' expresion
+   88          | expresion . GEQ expresion
+   89          | expresion . '+' expresion
+   90          | expresion . '-' expresion
+   91          | expresion . '*' expresion
+   92          | expresion . '/' expresion
+
+    LEQ  shift, and go to state 109
+    GEQ  shift, and go to state 110
+    EQ   shift, and go to state 111
+    NEQ  shift, and go to state 112
+    '<'  shift, and go to state 113
+    '>'  shift, and go to state 114
+    '+'  shift, and go to state 115
+    '-'  shift, and go to state 116
+    '*'  shift, and go to state 117
+    '/'  shift, and go to state 118
+
+    $default  reduce using rule 81 (expresion)
+
+
+State 141
+
+   81 expresion: expresion . AND expresion
+   82          | expresion . OR expresion
+   82          | expresion OR expresion .
+   83          | expresion . NEQ expresion
+   84          | expresion . EQ expresion
+   85          | expresion . '<' expresion
+   86          | expresion . LEQ expresion
+   87          | expresion . '>' expresion
+   88          | expresion . GEQ expresion
+   89          | expresion . '+' expresion
+   90          | expresion . '-' expresion
+   91          | expresion . '*' expresion
+   92          | expresion . '/' expresion
+
+    AND  shift, and go to state 107
+    LEQ  shift, and go to state 109
+    GEQ  shift, and go to state 110
+    EQ   shift, and go to state 111
+    NEQ  shift, and go to state 112
+    '<'  shift, and go to state 113
+    '>'  shift, and go to state 114
+    '+'  shift, and go to state 115
+    '-'  shift, and go to state 116
+    '*'  shift, and go to state 117
+    '/'  shift, and go to state 118
+
+    $default  reduce using rule 82 (expresion)
+
+
+State 142
+
+   81 expresion: expresion . AND expresion
+   82          | expresion . OR expresion
+   83          | expresion . NEQ expresion
+   84          | expresion . EQ expresion
+   85          | expresion . '<' expresion
+   86          | expresion . LEQ expresion
+   86          | expresion LEQ expresion .
+   87          | expresion . '>' expresion
+   88          | expresion . GEQ expresion
+   89          | expresion . '+' expresion
+   90          | expresion . '-' expresion
+   91          | expresion . '*' expresion
+   92          | expresion . '/' expresion
+
+    '+'  shift, and go to state 115
+    '-'  shift, and go to state 116
+    '*'  shift, and go to state 117
+    '/'  shift, and go to state 118
+
+    $default  reduce using rule 86 (expresion)
+
+
+State 143
+
+   81 expresion: expresion . AND expresion
+   82          | expresion . OR expresion
+   83          | expresion . NEQ expresion
+   84          | expresion . EQ expresion
+   85          | expresion . '<' expresion
+   86          | expresion . LEQ expresion
+   87          | expresion . '>' expresion
+   88          | expresion . GEQ expresion
+   88          | expresion GEQ expresion .
+   89          | expresion . '+' expresion
+   90          | expresion . '-' expresion
+   91          | expresion . '*' expresion
+   92          | expresion . '/' expresion
+
+    '+'  shift, and go to state 115
+    '-'  shift, and go to state 116
+    '*'  shift, and go to state 117
+    '/'  shift, and go to state 118
+
+    $default  reduce using rule 88 (expresion)
+
+
+State 144
+
+   81 expresion: expresion . AND expresion
+   82          | expresion . OR expresion
+   83          | expresion . NEQ expresion
+   84          | expresion . EQ expresion
+   84          | expresion EQ expresion .
+   85          | expresion . '<' expresion
+   86          | expresion . LEQ expresion
+   87          | expresion . '>' expresion
+   88          | expresion . GEQ expresion
+   89          | expresion . '+' expresion
+   90          | expresion . '-' expresion
+   91          | expresion . '*' expresion
+   92          | expresion . '/' expresion
+
+    LEQ  shift, and go to state 109
+    GEQ  shift, and go to state 110
+    '<'  shift, and go to state 113
+    '>'  shift, and go to state 114
+    '+'  shift, and go to state 115
+    '-'  shift, and go to state 116
+    '*'  shift, and go to state 117
+    '/'  shift, and go to state 118
+
+    $default  reduce using rule 84 (expresion)
+
+
+State 145
+
+   81 expresion: expresion . AND expresion
+   82          | expresion . OR expresion
+   83          | expresion . NEQ expresion
+   83          | expresion NEQ expresion .
+   84          | expresion . EQ expresion
+   85          | expresion . '<' expresion
+   86          | expresion . LEQ expresion
+   87          | expresion . '>' expresion
+   88          | expresion . GEQ expresion
+   89          | expresion . '+' expresion
+   90          | expresion . '-' expresion
+   91          | expresion . '*' expresion
+   92          | expresion . '/' expresion
+
+    LEQ  shift, and go to state 109
+    GEQ  shift, and go to state 110
+    '<'  shift, and go to state 113
+    '>'  shift, and go to state 114
+    '+'  shift, and go to state 115
+    '-'  shift, and go to state 116
+    '*'  shift, and go to state 117
+    '/'  shift, and go to state 118
+
+    $default  reduce using rule 83 (expresion)
+
+
+State 146
+
+   81 expresion: expresion . AND expresion
+   82          | expresion . OR expresion
+   83          | expresion . NEQ expresion
+   84          | expresion . EQ expresion
+   85          | expresion . '<' expresion
+   85          | expresion '<' expresion .
+   86          | expresion . LEQ expresion
+   87          | expresion . '>' expresion
+   88          | expresion . GEQ expresion
+   89          | expresion . '+' expresion
+   90          | expresion . '-' expresion
+   91          | expresion . '*' expresion
+   92          | expresion . '/' expresion
+
+    '+'  shift, and go to state 115
+    '-'  shift, and go to state 116
+    '*'  shift, and go to state 117
+    '/'  shift, and go to state 118
+
+    $default  reduce using rule 85 (expresion)
+
+
+State 147
+
+   81 expresion: expresion . AND expresion
+   82          | expresion . OR expresion
+   83          | expresion . NEQ expresion
+   84          | expresion . EQ expresion
+   85          | expresion . '<' expresion
+   86          | expresion . LEQ expresion
+   87          | expresion . '>' expresion
+   87          | expresion '>' expresion .
+   88          | expresion . GEQ expresion
+   89          | expresion . '+' expresion
+   90          | expresion . '-' expresion
+   91          | expresion . '*' expresion
+   92          | expresion . '/' expresion
+
+    '+'  shift, and go to state 115
+    '-'  shift, and go to state 116
+    '*'  shift, and go to state 117
+    '/'  shift, and go to state 118
+
+    $default  reduce using rule 87 (expresion)
+
+
+State 148
+
+   81 expresion: expresion . AND expresion
+   82          | expresion . OR expresion
+   83          | expresion . NEQ expresion
+   84          | expresion . EQ expresion
+   85          | expresion . '<' expresion
+   86          | expresion . LEQ expresion
+   87          | expresion . '>' expresion
+   88          | expresion . GEQ expresion
+   89          | expresion . '+' expresion
+   89          | expresion '+' expresion .
+   90          | expresion . '-' expresion
+   91          | expresion . '*' expresion
+   92          | expresion . '/' expresion
+
+    '*'  shift, and go to state 117
+    '/'  shift, and go to state 118
+
+    $default  reduce using rule 89 (expresion)
+
+
+State 149
+
+   81 expresion: expresion . AND expresion
+   82          | expresion . OR expresion
+   83          | expresion . NEQ expresion
+   84          | expresion . EQ expresion
+   85          | expresion . '<' expresion
+   86          | expresion . LEQ expresion
+   87          | expresion . '>' expresion
+   88          | expresion . GEQ expresion
+   89          | expresion . '+' expresion
+   90          | expresion . '-' expresion
+   90          | expresion '-' expresion .
+   91          | expresion . '*' expresion
+   92          | expresion . '/' expresion
+
+    '*'  shift, and go to state 117
+    '/'  shift, and go to state 118
+
+    $default  reduce using rule 90 (expresion)
+
+
+State 150
+
+   81 expresion: expresion . AND expresion
+   82          | expresion . OR expresion
+   83          | expresion . NEQ expresion
+   84          | expresion . EQ expresion
+   85          | expresion . '<' expresion
+   86          | expresion . LEQ expresion
+   87          | expresion . '>' expresion
+   88          | expresion . GEQ expresion
+   89          | expresion . '+' expresion
+   90          | expresion . '-' expresion
+   91          | expresion . '*' expresion
+   91          | expresion '*' expresion .
+   92          | expresion . '/' expresion
+
+    $default  reduce using rule 91 (expresion)
+
+
+State 151
+
+   81 expresion: expresion . AND expresion
+   82          | expresion . OR expresion
+   83          | expresion . NEQ expresion
+   84          | expresion . EQ expresion
+   85          | expresion . '<' expresion
+   86          | expresion . LEQ expresion
+   87          | expresion . '>' expresion
+   88          | expresion . GEQ expresion
+   89          | expresion . '+' expresion
+   90          | expresion . '-' expresion
+   91          | expresion . '*' expresion
+   92          | expresion . '/' expresion
+   92          | expresion '/' expresion .
+
+    $default  reduce using rule 92 (expresion)
+
+
+State 152
+
+   14 funcionesDef: IDENTIF '(' funcionArgs ')' '{' $@1 recSentenciaFin $@2 $@3 funcionesDef .
+
+    $default  reduce using rule 14 (funcionesDef)
+
+
+State 153
+
+   52 asignacion: IDENTIF '[' NUMBER ']' '=' . expresionAric
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresionAric   go to state 172
+    expresion       go to state 77
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 154
+
+  107 recArgFunctLlamada: ',' funcionArgsLlamada .
+
+    $default  reduce using rule 107 (recArgFunctLlamada)
+
+
+State 155
+
+   62 asignacionMultipleValor: NUMBER .
+
+    $default  reduce using rule 62 (asignacionMultipleValor)
+
+
+State 156
+
+   54 asignacion: IDENTIF identifRec @12 '=' asignacionMultiple .
+
+    $default  reduce using rule 54 (asignacion)
+
+
+State 157
+
+   58 asignacionMultiple: asignacionMultipleValorRec .
+
+    $default  reduce using rule 58 (asignacionMultiple)
+
+
+State 158
+
+   59 asignacionMultipleValorRec: asignacionMultipleValor .
+   60                           | asignacionMultipleValor . ',' asignacionMultipleValorRec
+
+    ','  shift, and go to state 173
+
+    $default  reduce using rule 59 (asignacionMultipleValorRec)
+
+
+State 159
+
+   61 asignacionMultipleValor: varIdentf .
+
+    $default  reduce using rule 61 (asignacionMultipleValor)
+
+
+State 160
+
+   57 asignacionMultiple: funcionLlamada .
+
+    $default  reduce using rule 57 (asignacionMultiple)
+
+
+State 161
+
+   51 restVar: '[' NUMBER ']' .
+
+    $default  reduce using rule 51 (restVar)
+
+
+State 162
+
+   48 restDeclaraciones: ',' IDENTIF . restVar restDeclaraciones
+
+    '='  shift, and go to state 93
+    '['  shift, and go to state 94
+
+    $default  reduce using rule 49 (restVar)
+
+    restVar  go to state 174
+
+
+State 163
+
+   64 sentenciaWhile: WHILE '(' expresionBool ')' '{' . $@13 recSentenciaCond
+
+    $default  reduce using rule 63 ($@13)
+
+    $@13  go to state 175
+
+
+State 164
+
+   75 declaracionFor: INTEGER IDENTIF restVar .
+
+    $default  reduce using rule 75 (declaracionFor)
+
+
+State 165
+
+   74 sentenciaFOR: FOR '(' declaracionFor ';' expresionBool . ';' asignacion ')' '{' $@18 recSentenciaCond $@19
+
+    ';'  shift, and go to state 176
+
+
+State 166
+
+   67 sentenciaIF: IF '(' expresionBool ')' '{' . $@14 recSentenciaCond $@15 restoIF
+
+    $default  reduce using rule 65 ($@14)
+
+    $@14  go to state 177
+
+
+State 167
+
+   41 sentencia: PUTS '(' STRING ')' ';' .
+
+    $default  reduce using rule 41 (sentencia)
+
+
+State 168
+
+   40 sentencia: PRINTF '(' STRING ',' expresion . printRec ')' ';'
+   81 expresion: expresion . AND expresion
+   82          | expresion . OR expresion
+   83          | expresion . NEQ expresion
+   84          | expresion . EQ expresion
+   85          | expresion . '<' expresion
+   86          | expresion . LEQ expresion
+   87          | expresion . '>' expresion
+   88          | expresion . GEQ expresion
+   89          | expresion . '+' expresion
+   90          | expresion . '-' expresion
+   91          | expresion . '*' expresion
+   92          | expresion . '/' expresion
+
+    AND  shift, and go to state 107
+    OR   shift, and go to state 108
+    LEQ  shift, and go to state 109
+    GEQ  shift, and go to state 110
+    EQ   shift, and go to state 111
+    NEQ  shift, and go to state 112
+    '<'  shift, and go to state 113
+    '>'  shift, and go to state 114
+    '+'  shift, and go to state 115
+    '-'  shift, and go to state 116
+    '*'  shift, and go to state 117
+    '/'  shift, and go to state 118
+    ','  shift, and go to state 178
+
+    $default  reduce using rule 76 (printRec)
+
+    printRec  go to state 179
+
+
+State 169
+
+   28 recSentenciaNoFin: RETURN . expresionAric ';' '}'
+   30                  | RETURN . expresionAric ';' $@8 recSentenciaNoFin
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresionAric   go to state 180
+    expresion       go to state 77
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 170
+
+   25 recSentenciaFin: RETURN expresionAric ';' $@6 recSentenciaNoFin .
+
+    $default  reduce using rule 25 (recSentenciaFin)
+
+
+State 171
+
+   32 recSentenciaNoFin: sentencia . $@9 recSentenciaFin
+
+    $default  reduce using rule 31 ($@9)
+
+    $@9  go to state 181
+
+
+State 172
+
+   52 asignacion: IDENTIF '[' NUMBER ']' '=' expresionAric .
+
+    $default  reduce using rule 52 (asignacion)
+
+
+State 173
+
+   60 asignacionMultipleValorRec: asignacionMultipleValor ',' . asignacionMultipleValorRec
+
+    NUMBER   shift, and go to state 155
+    IDENTIF  shift, and go to state 26
+
+    asignacionMultipleValorRec  go to state 182
+    asignacionMultipleValor     go to state 158
+    varIdentf                   go to state 159
+
+
+State 174
+
+   48 restDeclaraciones: ',' IDENTIF restVar . restDeclaraciones
+
+    ','  shift, and go to state 129
+
+    $default  reduce using rule 47 (restDeclaraciones)
+
+    restDeclaraciones  go to state 183
+
+
+State 175
+
+   64 sentenciaWhile: WHILE '(' expresionBool ')' '{' $@13 . recSentenciaCond
+
+    IDENTIF  shift, and go to state 43
+    INTEGER  shift, and go to state 44
+    WHILE    shift, and go to state 45
+    FOR      shift, and go to state 46
+    IF       shift, and go to state 47
+    PUTS     shift, and go to state 48
+    PRINTF   shift, and go to state 49
+    RETURN   shift, and go to state 184
+    '}'      shift, and go to state 185
+
+    recSentenciaCond  go to state 186
+    sentencia         go to state 187
+    declaraciones     go to state 54
+    asignacion        go to state 55
+    sentenciaWhile    go to state 56
+    sentenciaIF       go to state 57
+    sentenciaFOR      go to state 58
+    funcionLlamada    go to state 59
+
+
+State 176
+
+   74 sentenciaFOR: FOR '(' declaracionFor ';' expresionBool ';' . asignacion ')' '{' $@18 recSentenciaCond $@19
+
+    IDENTIF  shift, and go to state 188
+
+    asignacion  go to state 189
+
+
+State 177
+
+   67 sentenciaIF: IF '(' expresionBool ')' '{' $@14 . recSentenciaCond $@15 restoIF
+
+    IDENTIF  shift, and go to state 43
+    INTEGER  shift, and go to state 44
+    WHILE    shift, and go to state 45
+    FOR      shift, and go to state 46
+    IF       shift, and go to state 47
+    PUTS     shift, and go to state 48
+    PRINTF   shift, and go to state 49
+    RETURN   shift, and go to state 184
+    '}'      shift, and go to state 185
+
+    recSentenciaCond  go to state 190
+    sentencia         go to state 187
+    declaraciones     go to state 54
+    asignacion        go to state 55
+    sentenciaWhile    go to state 56
+    sentenciaIF       go to state 57
+    sentenciaFOR      go to state 58
+    funcionLlamada    go to state 59
+
+
+State 178
+
+   77 printRec: ',' . expresion printRec
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresion       go to state 191
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 179
+
+   40 sentencia: PRINTF '(' STRING ',' expresion printRec . ')' ';'
+
+    ')'  shift, and go to state 192
+
+
+State 180
+
+   28 recSentenciaNoFin: RETURN expresionAric . ';' '}'
+   30                  | RETURN expresionAric . ';' $@8 recSentenciaNoFin
+
+    ';'  shift, and go to state 193
+
+
+State 181
+
+   32 recSentenciaNoFin: sentencia $@9 . recSentenciaFin
+
+    IDENTIF  shift, and go to state 43
+    INTEGER  shift, and go to state 44
+    WHILE    shift, and go to state 45
+    FOR      shift, and go to state 46
+    IF       shift, and go to state 47
+    PUTS     shift, and go to state 48
+    PRINTF   shift, and go to state 49
+    RETURN   shift, and go to state 50
+    '}'      shift, and go to state 51
+
+    recSentenciaFin  go to state 194
+    sentencia        go to state 53
+    declaraciones    go to state 54
+    asignacion       go to state 55
+    sentenciaWhile   go to state 56
+    sentenciaIF      go to state 57
+    sentenciaFOR     go to state 58
+    funcionLlamada   go to state 59
+
+
+State 182
+
+   60 asignacionMultipleValorRec: asignacionMultipleValor ',' asignacionMultipleValorRec .
+
+    $default  reduce using rule 60 (asignacionMultipleValorRec)
+
+
+State 183
+
+   48 restDeclaraciones: ',' IDENTIF restVar restDeclaraciones .
+
+    $default  reduce using rule 48 (restDeclaraciones)
+
+
+State 184
+
+   37 recSentenciaCond: RETURN . expresionAric ';' $@11 recSentenciaCond
+
+    NUMBER   shift, and go to state 71
+    IDENTIF  shift, and go to state 72
+    '+'      shift, and go to state 73
+    '-'      shift, and go to state 74
+    '('      shift, and go to state 75
+
+    expresionAric   go to state 195
+    expresion       go to state 77
+    termino         go to state 78
+    operando        go to state 79
+    varIdentf       go to state 80
+    funcionLlamada  go to state 81
+
+
+State 185
+
+   33 recSentenciaCond: '}' .
+
+    $default  reduce using rule 33 (recSentenciaCond)
+
+
+State 186
+
+   64 sentenciaWhile: WHILE '(' expresionBool ')' '{' $@13 recSentenciaCond .
+
+    $default  reduce using rule 64 (sentenciaWhile)
+
+
+State 187
+
+   35 recSentenciaCond: sentencia . $@10 recSentenciaCond
+
+    $default  reduce using rule 34 ($@10)
+
+    $@10  go to state 196
+
+
+State 188
+
+   52 asignacion: IDENTIF . '[' NUMBER ']' '=' expresionAric
+   54           | IDENTIF . identifRec @12 '=' asignacionMultiple
+
+    ','  shift, and go to state 61
+    '['  shift, and go to state 62
+
+    $default  reduce using rule 55 (identifRec)
+
+    identifRec  go to state 64
+
+
+State 189
+
+   74 sentenciaFOR: FOR '(' declaracionFor ';' expresionBool ';' asignacion . ')' '{' $@18 recSentenciaCond $@19
+
+    ')'  shift, and go to state 197
+
+
+State 190
+
+   67 sentenciaIF: IF '(' expresionBool ')' '{' $@14 recSentenciaCond . $@15 restoIF
+
+    $default  reduce using rule 66 ($@15)
+
+    $@15  go to state 198
+
+
+State 191
+
+   77 printRec: ',' expresion . printRec
+   81 expresion: expresion . AND expresion
+   82          | expresion . OR expresion
+   83          | expresion . NEQ expresion
+   84          | expresion . EQ expresion
+   85          | expresion . '<' expresion
+   86          | expresion . LEQ expresion
+   87          | expresion . '>' expresion
+   88          | expresion . GEQ expresion
+   89          | expresion . '+' expresion
+   90          | expresion . '-' expresion
+   91          | expresion . '*' expresion
+   92          | expresion . '/' expresion
+
+    AND  shift, and go to state 107
+    OR   shift, and go to state 108
+    LEQ  shift, and go to state 109
+    GEQ  shift, and go to state 110
+    EQ   shift, and go to state 111
+    NEQ  shift, and go to state 112
+    '<'  shift, and go to state 113
+    '>'  shift, and go to state 114
+    '+'  shift, and go to state 115
+    '-'  shift, and go to state 116
+    '*'  shift, and go to state 117
+    '/'  shift, and go to state 118
+    ','  shift, and go to state 178
+
+    $default  reduce using rule 76 (printRec)
+
+    printRec  go to state 199
+
+
+State 192
+
+   40 sentencia: PRINTF '(' STRING ',' expresion printRec ')' . ';'
+
+    ';'  shift, and go to state 200
+
+
+State 193
+
+   28 recSentenciaNoFin: RETURN expresionAric ';' . '}'
+   30                  | RETURN expresionAric ';' . $@8 recSentenciaNoFin
+
+    '}'  shift, and go to state 201
+
+    $default  reduce using rule 29 ($@8)
+
+    $@8  go to state 202
+
+
+State 194
+
+   32 recSentenciaNoFin: sentencia $@9 recSentenciaFin .
+
+    $default  reduce using rule 32 (recSentenciaNoFin)
+
+
+State 195
+
+   37 recSentenciaCond: RETURN expresionAric . ';' $@11 recSentenciaCond
+
+    ';'  shift, and go to state 203
+
+
+State 196
+
+   35 recSentenciaCond: sentencia $@10 . recSentenciaCond
+
+    IDENTIF  shift, and go to state 43
+    INTEGER  shift, and go to state 44
+    WHILE    shift, and go to state 45
+    FOR      shift, and go to state 46
+    IF       shift, and go to state 47
+    PUTS     shift, and go to state 48
+    PRINTF   shift, and go to state 49
+    RETURN   shift, and go to state 184
+    '}'      shift, and go to state 185
+
+    recSentenciaCond  go to state 204
+    sentencia         go to state 187
+    declaraciones     go to state 54
+    asignacion        go to state 55
+    sentenciaWhile    go to state 56
+    sentenciaIF       go to state 57
+    sentenciaFOR      go to state 58
+    funcionLlamada    go to state 59
+
+
+State 197
+
+   74 sentenciaFOR: FOR '(' declaracionFor ';' expresionBool ';' asignacion ')' . '{' $@18 recSentenciaCond $@19
+
+    '{'  shift, and go to state 205
+
+
+State 198
+
+   67 sentenciaIF: IF '(' expresionBool ')' '{' $@14 recSentenciaCond $@15 . restoIF
+
+    ELSE  shift, and go to state 206
+
+    $default  reduce using rule 68 (restoIF)
+
+    restoIF  go to state 207
+
+
+State 199
+
+   77 printRec: ',' expresion printRec .
+
+    $default  reduce using rule 77 (printRec)
+
+
+State 200
+
+   40 sentencia: PRINTF '(' STRING ',' expresion printRec ')' ';' .
+
+    $default  reduce using rule 40 (sentencia)
+
+
+State 201
+
+   28 recSentenciaNoFin: RETURN expresionAric ';' '}' .
+
+    $default  reduce using rule 28 (recSentenciaNoFin)
+
+
+State 202
+
+   30 recSentenciaNoFin: RETURN expresionAric ';' $@8 . recSentenciaNoFin
+
+    IDENTIF  shift, and go to state 43
+    INTEGER  shift, and go to state 44
+    WHILE    shift, and go to state 45
+    FOR      shift, and go to state 46
+    IF       shift, and go to state 47
+    PUTS     shift, and go to state 48
+    PRINTF   shift, and go to state 49
+    RETURN   shift, and go to state 169
+
+    recSentenciaNoFin  go to state 208
+    sentencia          go to state 171
+    declaraciones      go to state 54
+    asignacion         go to state 55
+    sentenciaWhile     go to state 56
+    sentenciaIF        go to state 57
+    sentenciaFOR       go to state 58
+    funcionLlamada     go to state 59
+
+
+State 203
+
+   37 recSentenciaCond: RETURN expresionAric ';' . $@11 recSentenciaCond
+
+    $default  reduce using rule 36 ($@11)
+
+    $@11  go to state 209
+
+
+State 204
+
+   35 recSentenciaCond: sentencia $@10 recSentenciaCond .
+
+    $default  reduce using rule 35 (recSentenciaCond)
+
+
+State 205
+
+   74 sentenciaFOR: FOR '(' declaracionFor ';' expresionBool ';' asignacion ')' '{' . $@18 recSentenciaCond $@19
+
+    $default  reduce using rule 72 ($@18)
+
+    $@18  go to state 210
+
+
+State 206
+
+   71 restoIF: ELSE . '{' $@16 recSentenciaCond $@17
+
+    '{'  shift, and go to state 211
+
+
+State 207
+
+   67 sentenciaIF: IF '(' expresionBool ')' '{' $@14 recSentenciaCond $@15 restoIF .
+
+    $default  reduce using rule 67 (sentenciaIF)
+
+
+State 208
+
+   30 recSentenciaNoFin: RETURN expresionAric ';' $@8 recSentenciaNoFin .
+
+    $default  reduce using rule 30 (recSentenciaNoFin)
+
+
+State 209
+
+   37 recSentenciaCond: RETURN expresionAric ';' $@11 . recSentenciaCond
+
+    IDENTIF  shift, and go to state 43
+    INTEGER  shift, and go to state 44
+    WHILE    shift, and go to state 45
+    FOR      shift, and go to state 46
+    IF       shift, and go to state 47
+    PUTS     shift, and go to state 48
+    PRINTF   shift, and go to state 49
+    RETURN   shift, and go to state 184
+    '}'      shift, and go to state 185
+
+    recSentenciaCond  go to state 212
+    sentencia         go to state 187
+    declaraciones     go to state 54
+    asignacion        go to state 55
+    sentenciaWhile    go to state 56
+    sentenciaIF       go to state 57
+    sentenciaFOR      go to state 58
+    funcionLlamada    go to state 59
+
+
+State 210
+
+   74 sentenciaFOR: FOR '(' declaracionFor ';' expresionBool ';' asignacion ')' '{' $@18 . recSentenciaCond $@19
+
+    IDENTIF  shift, and go to state 43
+    INTEGER  shift, and go to state 44
+    WHILE    shift, and go to state 45
+    FOR      shift, and go to state 46
+    IF       shift, and go to state 47
+    PUTS     shift, and go to state 48
+    PRINTF   shift, and go to state 49
+    RETURN   shift, and go to state 184
+    '}'      shift, and go to state 185
+
+    recSentenciaCond  go to state 213
+    sentencia         go to state 187
+    declaraciones     go to state 54
+    asignacion        go to state 55
+    sentenciaWhile    go to state 56
+    sentenciaIF       go to state 57
+    sentenciaFOR      go to state 58
+    funcionLlamada    go to state 59
+
+
+State 211
+
+   71 restoIF: ELSE '{' . $@16 recSentenciaCond $@17
+
+    $default  reduce using rule 69 ($@16)
+
+    $@16  go to state 214
+
+
+State 212
+
+   37 recSentenciaCond: RETURN expresionAric ';' $@11 recSentenciaCond .
+
+    $default  reduce using rule 37 (recSentenciaCond)
+
+
+State 213
+
+   74 sentenciaFOR: FOR '(' declaracionFor ';' expresionBool ';' asignacion ')' '{' $@18 recSentenciaCond . $@19
+
+    $default  reduce using rule 73 ($@19)
+
+    $@19  go to state 215
+
+
+State 214
+
+   71 restoIF: ELSE '{' $@16 . recSentenciaCond $@17
+
+    IDENTIF  shift, and go to state 43
+    INTEGER  shift, and go to state 44
+    WHILE    shift, and go to state 45
+    FOR      shift, and go to state 46
+    IF       shift, and go to state 47
+    PUTS     shift, and go to state 48
+    PRINTF   shift, and go to state 49
+    RETURN   shift, and go to state 184
+    '}'      shift, and go to state 185
+
+    recSentenciaCond  go to state 216
+    sentencia         go to state 187
+    declaraciones     go to state 54
+    asignacion        go to state 55
+    sentenciaWhile    go to state 56
+    sentenciaIF       go to state 57
+    sentenciaFOR      go to state 58
+    funcionLlamada    go to state 59
+
+
+State 215
+
+   74 sentenciaFOR: FOR '(' declaracionFor ';' expresionBool ';' asignacion ')' '{' $@18 recSentenciaCond $@19 .
+
+    $default  reduce using rule 74 (sentenciaFOR)
+
+
+State 216
+
+   71 restoIF: ELSE '{' $@16 recSentenciaCond . $@17
+
+    $default  reduce using rule 70 ($@17)
+
+    $@17  go to state 217
+
+
+State 217
+
+   71 restoIF: ELSE '{' $@16 recSentenciaCond $@17 .
+
+    $default  reduce using rule 71 (restoIF)

@@ -22,6 +22,7 @@ char temp [2048] ;
 char *code_generated;
 char *act_function;
 char *concat_ptr;
+int identif_count;
 
 // Definitions for explicit attributes
 
@@ -189,7 +190,7 @@ recSentenciaCond:   '}'                            {printf(")\n"); }
 
 
 sentencia:     declaraciones ';'                                { $$.code = $1.code; }
-            |   asignacion  ';'                                 { $$.code = $1.code; }
+            |  asignacion  ';'                                  { $$.code = $1.code; }
 
             | PRINTF '(' STRING ',' expresion printRec ')' ';'  { if ($6.code) {
                                                                     sprintf (temp, "(print %s) %s", $5.code, $6.code);
@@ -232,33 +233,70 @@ restVar:                        { $$.code = "0";}
             ;
 
 
-asignacion: IDENTIF '[' NUMBER ']' '=' expresionAric  {  if ($2.code == NULL){
-                                                sprintf (temp, "(setq %s %s)", $1.code, $4.code) ; 
-                                            } else{
-                                                sprintf (temp, "(setf (aref %s %s) %s)", $1.code, $2.code, $4.code) ;
-                                            }
-                                            $$.code = gen_code (temp) ; }
-            | IDENTIF  asignacionMultiple expresionAric  { if ($2.code == NULL){
-                                                                sprintf (temp, "(setq %s %s)", $1.code, $3.code);
-                                                            } else {
-                                                                sprintf (temp, "(setf (values %s %s) (values %s %s))", $1.code, $2.code, $2.code2, $3.code );
-                                                            }
-                                                        $$.code = gen_code (temp);
+asignacion: IDENTIF '[' NUMBER ']' '=' expresionAric    {  if ($2.code == NULL){
+                                                            sprintf (temp, "(setq %s %s)", $1.code, $4.code) ; 
+                                                        } else{
+                                                            sprintf (temp, "(setf (aref %s %s) %s)", $1.code, $2.code, $4.code) ;
                                                         }
+                                                         $$.code = gen_code (temp) ; 
+                                                        }
+            | IDENTIF identifRec                        {identif_count = 1 + $2.value;
+                                                            concat_ptr = temp;
+                                                        if (identif_count == 1){
+                                                            concat_ptr += sprintf (concat_ptr, "(setq %s", $1.code); 
+                                                        } else {
+                                                            concat_ptr += sprintf (concat_ptr, "(setf (values %s %s)", $1.code, $2.code); 
+                                                        }
+                                                            $$.code = gen_code(temp);
+                                                        }
+            '=' asignacionMultiple                      {  
+                                                            if ($5.value == -1){
+                                                                // Function
+                                                                sprintf (temp, "%s %s)",$3.code, $5.code);
+                                                            } else {
+                                                                // multiple values
+                                                                if ($5.value != identif_count) {
+                                                                    //n values missmatch
+                                                                    yyerror("Missmatch on multiple assignation");
+                                                                } else {
+                                                                    sprintf(temp, "%s (values %s))", $3.code, $5.code);
+                                                                }
+                                                            }
+                                                            $$.code = gen_code(temp);
+                                                        } 
             ;
 
-asignacionMultiple: '='  { $$.code = NULL; }
-                    | ',' IDENTIF asignacionMultiple expresionAric ',' { if ($3.code == NULL){
-                                                                            $$.code = $2.code;
-                                                                            $$.code2 = $4.code;
-                                                                        } else {
-                                                                            sprintf (temp, "%s %s", $2.code, $3.code);
-                                                                            $$.code = gen_code (temp);
-                                                                            sprintf (temp, "%s %s", $3.code2, $4.code);
-                                                                            $$.code2 = gen_code (temp);
-                                                                        }
-                                                                        }
+identifRec:                                 { $$.code = "";
+                                              $$.value = 0; }
+            | ',' IDENTIF identifRec        {   
+                                                sprintf(temp,"%s %s", $2.code, $3.code);
+                                                $$.value = $3.value + 1;
+                                                $$.code = gen_code(temp);
+                                            }
+            ;
 
+asignacionMultiple: funcionLlamada                      { $$.code = $1.code;
+                                                            $$.value = -1;
+                                                        }
+                    | asignacionMultipleValorRec        { $$.code = $1.code;
+                                                        $$.value = $1.value;
+                                                        }
+                     ;
+
+asignacionMultipleValorRec: asignacionMultipleValor     { $$.code = $1.code;
+                                                          $$.value = 1;
+                                                        }
+                            | asignacionMultipleValor ',' asignacionMultipleValorRec {   
+                                                                                        sprintf(temp,"%s %s", $1.code, $3.code);
+                                                                                        $$.value = $3.value + 1;
+                                                                                        $$.code = gen_code(temp);
+                                                                                     }
+                            ;
+                                                            
+
+asignacionMultipleValor:   varIdentf                 { $$.code = $1.code ; }
+                        |   NUMBER                   { sprintf (temp, "%d", $1.value) ;
+                                                    $$.code = gen_code (temp) ; }
 
 sentenciaWhile: WHILE '(' expresionBool  ')' '{'   {  printf("(loop while %s do \n", $3.code); }
                 recSentenciaCond                        { ; }
