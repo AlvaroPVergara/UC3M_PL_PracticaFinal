@@ -1,4 +1,4 @@
-int test, test2 = 44, test3 [134], test4 = 777;
+	int test, test2 = 44, test3 [134], test4 = 777;
 int vaya_la_cobaya2 [43];
 
 
@@ -16,12 +16,12 @@ main(){
 	for (int i = 0; i < vaya_la_cobaya; i = i + 1)
 	{
 		if (a == 0 ) {
-			b = 123 + mi_vector[77];
+			b = 123 + i_vector[77];
 			test = test + test - test;
 			otra_sentencia = 99;
 		} else {
 			b = 456 ;
-			t = t - t *2;
+			t = t - t * 2;
 		}
 		int cometa;
 		int petazeta = 55;

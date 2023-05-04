@@ -131,7 +131,7 @@ funcionesDef:                                       { ; }
             |   IDENTIF '(' funcionArgs ')'  '{'    { printf("(defun %s (%s)\n", $1.code, $3.code); 
                                                         act_function = $1.code;
                                                     }
-                recSentencia                        { ; }
+                recSentenciaFin                     { ; }
                                                     { act_function = NULL; }
                 funcionesDef                        { ; }
             ;
@@ -157,19 +157,32 @@ recArgFunct:                        { $$.code = NULL; }
 mainDef: MAIN '(' ')' '{'           { printf("(defun main ()\n");
                                         act_function = "main"; 
                                     }
-                    recSentencia    { ; }
+                    recSentenciaFin    { ; }
                                     { ; }
                     ;
 
 
 /*------------ STATEMENT LEVEL ------------*/
-recSentencia:      '}'                             { printf(")\n"); }
-                    |   RETURN expresion ';' '}'    { printf("%s\n)\n", $2.code); }
-
-                    |   sentencia                   { if ($1.code) { printf("%s\n", $1.code); }}
-                        recSentencia               { ; }
+recSentenciaFin:      '}'                             { printf(")\n"); }
+                    |   RETURN expresion ';' '}'   { printf("%s\n)\n", $2.code); } 
+                    |   RETURN expresion ';'       { printf("(return-from %s %s)", act_function, $2.code); }
+                        recSentenciaNoFin          { ; }
+                    |   sentencia                  { if ($1.code) { printf("%s\n", $1.code); }}
+                        recSentenciaFin            { ; }
                     ;
 
+recSentenciaNoFin:      RETURN expresion ';' '}'   { printf("%s\n)\n", $2.code); }
+                    |   RETURN expresion ';'       { printf("(return-from %s %s)", act_function, $2.code); }
+                        recSentenciaNoFin          { ; }
+                    |   sentencia                  { if ($1.code) { printf("%s\n", $1.code); }}
+                        recSentenciaFin            { ; }
+
+recSentenciaCond:   '}'                            {printf(")\n"); }
+                    |   sentencia                  { if ($1.code) { printf("%s\n", $1.code); }}
+                        recSentenciaCond           { ; }
+                    |   RETURN expresion ';'       { printf("(return-from %s %s)", act_function, $2.code); }
+                        recSentenciaCond           { ; }   
+                    ;    
 
 
 sentencia:     declaraciones ';'                                { $$.code = $1.code; }
@@ -186,13 +199,10 @@ sentencia:     declaraciones ';'                                { $$.code = $1.c
 
             | PUTS '('  STRING  ')' ';'                         { sprintf(temp, "(print \"%s\")",$4.code);
                                                                     $$.code = gen_code (temp) ; }
-            | sentenciaWhile                                    { ; } 
-            | sentenciaIF                                       { ; }
-            | sentenciaFOR                                      { ; }
+            | sentenciaWhile                                    { $$.code = NULL; } 
+            | sentenciaIF                                       { $$.code = NULL; }
+            | sentenciaFOR                                      { $$.code = NULL; }
             | funcionLlamada   ';'                              { $$.code = $1.code; }
-            | RETURN expresion ';'                              { sprintf(temp, "(return-from %s %s)", act_function, $2.code);
-                                                                    $$.code = gen_code(temp);
-                                                                }
             ;
                                                         
 
@@ -237,18 +247,18 @@ asignacion: IDENTIF isVector '=' expresion  {  if ($2.code == NULL){
 
 
 sentenciaWhile: WHILE '(' expresion  ')' '{'   {  printf("(loop while %s do \n", $3.code); }
-                recSentencia                        { ; }
+                recSentenciaCond                        { ; }
             ;
 
 
 sentenciaIF: IF '(' expresion  ')' '{'     {  printf("(if %s\n(progn ", $3.code); }
-                recSentencia                    { ; }
+                recSentenciaCond                    { ; }
                 restoIF                         { ; }
             ;
 
 restoIF:                        { printf(")\n"); }
-        | ELSE '{'              { printf(")\n(progn "); }
-            recSentencia        { ; } //TODO: comprobar que se coloca bien el paréntesis NO LO HACE
+        | ELSE '{'              { printf("(progn "); }
+            recSentenciaCond    { ; } //TODO: comprobar que se coloca bien el paréntesis NO LO HACE
                                 { printf(")\n"); }
         ;
 
@@ -256,7 +266,7 @@ restoIF:                        { printf(")\n"); }
 
 /*TODO: COMPROBAR FUNCIONAMIENTO Y ESTRUCTRURA DE sentenciaFOR*/
 sentenciaFOR: FOR '(' declaracionFor ';' expresion ';' asignacion ')' '{'    {printf("(loop while %s do \n", $5.code);}
-                recSentencia                                                        { ; }
+                recSentenciaCond                                                        { ; }
                                                                                     {printf("%s\n)\n",$7.code);}  
                 ;    
 
