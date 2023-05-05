@@ -173,6 +173,7 @@ recSentenciaFin:      '}'                              { printf(")\n"); }
                         recSentenciaNoFin              { ; }
                     |   sentencia                      { if ($1.code) { printf("%s\n", $1.code); }}
                         recSentenciaFin                { ; }
+                    |   declaraciones                  { ; }
                     ;
 
 recSentenciaNoFin:      RETURN expresionAric ';' '}'   { printf("%s\n)\n", $2.code); }
@@ -180,17 +181,27 @@ recSentenciaNoFin:      RETURN expresionAric ';' '}'   { printf("%s\n)\n", $2.co
                         recSentenciaNoFin          { ; }
                     |   sentencia                  { if ($1.code) { printf("%s\n", $1.code); }}
                         recSentenciaFin            { ; }
+                    |   declaraciones              { ; }
+                    ;
 
 recSentenciaCond:   '}'                            {printf(")\n"); }
                     |   sentencia                  { if ($1.code) { printf("%s\n", $1.code); }}
                         recSentenciaCond           { ; }
-                    |   RETURN expresionAric ';'       { printf("(return-from %s %s)", act_function, $2.code); }
+                    |   RETURN expresionAric ';'   { printf("(return-from %s %s)", act_function, $2.code); }
                         recSentenciaCond           { ; }   
+                    |   declaraciones              { ; }
                     ;    
+    
+recSentenciaFor:   '}'                             { ; }
+                    |   sentencia                  { if ($1.code) { printf("%s\n", $1.code); }}
+                        recSentenciaFor            { ; }
+                    |   RETURN expresionAric ';'   { printf("(return-from %s %s)", act_function, $2.code); }
+                        recSentenciaFor            { ; }   
+                    |   declaraciones              { ; }
+                    ;  
 
 
-sentencia:     declaraciones ';'                                { $$.code = $1.code; }
-            |  asignacion  ';'                                  { $$.code = $1.code; }
+sentencia:   asignacion  ';'                                  { $$.code = $1.code; }
 
             | PRINTF '(' STRING ',' expresion printRec ')' ';'  { if ($6.code) {
                                                                     sprintf (temp, "(print %s) %s", $5.code, $6.code);
@@ -210,18 +221,18 @@ sentencia:     declaraciones ';'                                { $$.code = $1.c
             ;
                                                         
 
-//TODO: eliminar if else si al final no es necesario
-declaraciones: INTEGER IDENTIF restVar restDeclaraciones        { if ($3.value==0){
-                                                                    sprintf(temp,"(setq %s %s)%s", $2.code, $3.code, $4.code);
-                                                                } else{
-                                                                    sprintf(temp,"(setq %s %s)%s", $2.code, $3.code, $4.code);
-                                                                } 
-                                                                    $$.code = gen_code(temp);
+
+declaraciones: INTEGER IDENTIF restVar restDeclaraciones ';'       { 
+                                                                    printf("(let ((%s %s)\n%s", $2.code, $3.code, $4.code);
                                                                  }
+                recSentenciaCond                                { ; }
+                                                                { 
+                                                                    printf(")\n");
+                                                                }
                 ;
 
 restDeclaraciones:                                                  { $$.code = ""; }
-                    | ',' IDENTIF restVar restDeclaraciones     { sprintf(temp, " (setq %s %s)%s", $2.code, $3.code, $4.code);
+                    | ',' IDENTIF restVar restDeclaraciones     { sprintf(temp, " (%s %s)\n%s", $2.code, $3.code, $4.code);
                                                                   $$.code = gen_code(temp);
                                                                 }
                     ;
@@ -256,8 +267,10 @@ asignacion: IDENTIF '[' expresionAric ']' '=' expresionAric {
                                                                     //n values missmatch
                                                                     yyerror("Missmatch on multiple assignation");
                                                                     YYABORT;
-                                                                } else {
+                                                                } else if (identif_count >= 2){
                                                                     sprintf(temp, "%s (values %s))", $3.code, $5.code);
+                                                                } else {
+                                                                    sprintf(temp, "%s %s)", $3.code, $5.code);
                                                                 }
                                                             }
                                                             $$.code = gen_code(temp);
@@ -311,13 +324,14 @@ restoIF:                        { printf(")\n"); }
         ;
 
 
-sentenciaFOR: FOR '(' declaracionFor ';' expresionBool ';' asignacion ')' '{'    {printf("(loop while %s do \n", $5.code);}
-                recSentenciaCond                                                        { ; }
-                                                                                    {printf("%s\n)\n",$7.code);}  
+sentenciaFOR: FOR '(' declaracionFor ';' expresionBool ';' asignacion ')' '{'       {printf("(let %s",$3.code);
+                                                                                     printf("(loop while %s do \n", $5.code);}
+                recSentenciaFor                                                     { ; }
+                                                                                    {printf("%s\n)\n)\n",$7.code);}  
                 ;    
 
 
-declaracionFor: INTEGER IDENTIF restVar     {  sprintf(temp,"(setq %s %s)%s\n", $2.code, $3.code, $3.code);
+declaracionFor: INTEGER IDENTIF restVar     {  sprintf(temp,"(%s %s)\n", $2.code, $3.code);
                                             $$.code = gen_code(temp); }
                 ;
 

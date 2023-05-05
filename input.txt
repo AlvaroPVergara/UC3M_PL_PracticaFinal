@@ -15,16 +15,6 @@ patatofuncion (int var1, int var2) {
 main(){
 	for (int i = 0; i < vaya_la_cobaya; i = i + 1)
 	{
-		if (a == 0 ) {
-			b = 123 + i_vector[77];
-			test = test + test - test;
-			otra_sentencia = 99;
-		} else {
-			b = 456 ;
-			t = t - t * 2;
-		}
-		int cometa;
-		int petazeta = 55;
 		varai = 6 + 5;
 	}
 	int vaya_la_cobaya;
