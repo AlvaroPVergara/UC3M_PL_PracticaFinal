@@ -233,13 +233,10 @@ restVar:                        { $$.code = "0";}
             ;
 
 
-asignacion: IDENTIF '[' NUMBER ']' '=' expresionAric    {  if ($2.code == NULL){
-                                                            sprintf (temp, "(setq %s %s)", $1.code, $4.code) ; 
-                                                        } else{
-                                                            sprintf (temp, "(setf (aref %s %s) %s)", $1.code, $2.code, $4.code) ;
-                                                        }
-                                                         $$.code = gen_code (temp) ; 
-                                                        }
+asignacion: IDENTIF '[' expresionAric ']' '=' expresionAric { 
+                                                            sprintf (temp, "(setf (aref %s %s) %s)", $1.code, $3.code, $6.code) ;
+                                                            $$.code = gen_code (temp) ; 
+                                                        }   
             | IDENTIF identifRec                        {identif_count = 1 + $2.value;
                                                             concat_ptr = temp;
                                                         if (identif_count == 1){
@@ -280,8 +277,9 @@ identifRec:                                 { $$.code = "";
 asignacionMultipleRec:      expresion     { $$.code = $1.code;
                                             if ($1.value == -1){
                                                 $$.value = -1;
-                                            }
-                                            $$.value = 1;
+                                            } else { 
+                                                $$.value = 1; }
+                                            
                                                         }
                         | expresion ',' asignacionMultipleRec {   
                                                                 if($1.value == -1 || $3.value == -1){
@@ -295,9 +293,6 @@ asignacionMultipleRec:      expresion     { $$.code = $1.code;
                             ;
                                                             
 
-asignacionMultipleValor:   varIdentf                 { $$.code = $1.code ; }
-                        |   NUMBER                   { sprintf (temp, "%d", $1.value) ;
-                                                    $$.code = gen_code (temp) ; }
 
 sentenciaWhile: WHILE '(' expresionBool  ')' '{'   {  printf("(loop while %s do \n", $3.code); }
                 recSentenciaCond                        { ; }
