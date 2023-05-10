@@ -262,19 +262,28 @@ asignacion: IDENTIF '[' expresionAric ']' '=' expresionAric {
                                                                 // Function
                                                                 sprintf (temp, "%s %s)",$3.code, $5.code);
                                                             } else {
-                                                                // multiple values
-                                                                if ($5.value != identif_count) {
-                                                                    //n values missmatch
-                                                                    yyerror("Missmatch on multiple assignation");
-                                                                    YYABORT;
-                                                                } else if (identif_count >= 2){
-                                                                    sprintf(temp, "%s (values %s))", $3.code, $5.code);
-                                                                } else {
-                                                                    sprintf(temp, "%s %s)", $3.code, $5.code);
-                                                                }
+                                                                concat_ptr += sprintf (concat_ptr, "(setf (values %s %s)", $1.code, $2.code); 
                                                             }
-                                                            $$.code = gen_code(temp);
-                                                        } 
+                                                                $$.code = gen_code(temp);
+                                                            }
+                '=' asignacionMultipleRec                      {  
+                                                                if ($5.value == -1){
+                                                                    // Function
+                                                                    sprintf (temp, "%s %s)",$3.code, $5.code);
+                                                                } else {
+                                                                    // multiple values
+                                                                    if ($5.value != identif_count) {
+                                                                        //n values missmatch
+                                                                        yyerror("Missmatch on multiple assignation");
+                                                                        YYABORT;
+                                                                    } else if (identif_count >= 2){
+                                                                        sprintf(temp, "%s (values %s))", $3.code, $5.code);
+                                                                    } else {
+                                                                        sprintf(temp, "%s %s)", $3.code, $5.code);
+                                                                    }
+                                                                }
+                                                                $$.code = gen_code(temp);
+                                                            } 
             ;
 
 identifRec:                                 { $$.code = "";
