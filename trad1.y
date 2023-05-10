@@ -113,11 +113,10 @@ declaracionesGlobRec:   INTEGER IDENTIF restGlobVar restDeclaracionesGlob   { if
 restDeclaracionesGlob:                                                      { $$.code = ""; }
                         | ',' IDENTIF restGlobVar restDeclaracionesGlob     { if ($3.code==NULL){
                                                                                     sprintf(temp, " (setq %s %d)%s", $2.code, $3.value, $4.code);
-                                                                                    $$.code = gen_code(temp);
                                                                                 } else {
                                                                                     sprintf(temp, " (setq %s %s)%s", $2.code, $3.code, $4.code);
-                                                                                    $$.code = gen_code(temp);
                                                                                 }
+                                                                                $$.code = gen_code(temp);
                                                                             }
                         ;
 
@@ -222,11 +221,10 @@ sentencia:   asignacion  ';'                                  { $$.code = $1.cod
                                                         
 
 
-declaraciones: INTEGER IDENTIF restVar restDeclaraciones ';'       { 
+declaraciones: INTEGER IDENTIF restVar restDeclaraciones ';'    { 
                                                                     printf("(let ((%s %s)\n%s)", $2.code, $3.code, $4.code);
-                                                                 }
-                recSentenciaCond                                { ; }
-                                                                { 
+                                                                }
+                recSentenciaCond                                { 
                                                                     printf(")\n");
                                                                 }
                 ;
