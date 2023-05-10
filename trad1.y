@@ -324,16 +324,31 @@ restoIF:                        { printf(")\n"); }
         ;
 
 
-sentenciaFOR: FOR '(' declaracionFor ';' expresionBool ';' asignacion ')' '{'       {printf("(let %s",$3.code);
+sentenciaFOR: FOR '(' declaracionFor ';' expresionBool ';' asignacion ')' '{'       { if ($3.value == 0) // DECLARATION 
+																						printf("(let %s",$3.code);
+																					  else // ASSIGNATION
+																					    printf("%s", $3.code);
                                                                                      printf("(loop while %s do \n", $5.code);}
                 recSentenciaFor                                                     { ; }
-                                                                                    {printf("%s\n)\n)\n",$7.code);}  
+                                                                                    {
+                                                                                    if ($3.value == 0){
+                                                                                        printf("%s\n)\n)\n",$7.code);}
+                                                                                    else {
+                                                                                        printf("%s\n)\n",$7.code);
+                                                                                    }
+                                                                                    }  
                 ;    
 
 
 
 declaracionFor: INTEGER IDENTIF restVar     {  sprintf(temp,"(%s %s)\n", $2.code, $3.code);
-                                            $$.code = gen_code(temp); }
+                                            $$.code = gen_code(temp); 
+                                            // value 0 for declaratipn
+                                            $$.value = 0;}
+				| asignacion                { $$.code = $1.code;
+                                            //value 1 for declaration
+                                            $$.value = 1;
+                                            }
                 ;
 
 printRec:                               { $$.code = NULL; }
@@ -634,7 +649,7 @@ varIdentf:  IDENTIF isVector               {if ($2.code == NULL){
             ;
 
 isVector:                                      { $$.code = NULL; }
-            |  '[' NUMBER ']'                  { sprintf(temp, "%d", $2.value); $$.code = gen_code(temp);}
+            |  '[' expresionAric ']'                  { sprintf(temp, "%s", $2.code); $$.code = gen_code(temp);}
             ;
 
 funcionLlamada: IDENTIF '(' funcionArgsLlamada ')'      { sprintf(temp,"(%s %s)", $1.code, $3.code);
