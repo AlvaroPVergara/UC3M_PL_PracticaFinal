@@ -237,7 +237,7 @@ restDeclaraciones:                                                  { $$.code = 
 
 restVar:                        { $$.code = "0";}
             | '=' expresionAric { $$.code = $2.code;}
-            | '[' NUMBER ']'    { sprintf(temp, "(make-array %d)", $2.value);
+            | '[' expresionAric ']'    { sprintf(temp, "(make-array %s)", $2.code);
 								    $$.code = gen_code(temp); }
             ;
 
