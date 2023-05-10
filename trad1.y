@@ -285,14 +285,13 @@ identifRec:                                 { $$.code = "";
             ;
 
 
-asignacionMultipleRec:      expresion     { $$.code = $1.code;
-                                            if ($1.value == -1){
-                                                $$.value = -1;
-                                            } else { 
-                                                $$.value = 1; }
-                                            
-                                                        }
-                        | expresion ',' asignacionMultipleRec {   
+asignacionMultipleRec:      expresionAric                       { $$.code = $1.code;
+                                                                if ($1.value == -1){
+                                                                    $$.value = -1;
+                                                                } else { 
+                                                                    $$.value = 1; }
+                                                                }
+                    | expresionAric ',' asignacionMultipleRec  {   
                                                                 if($1.value == -1 || $3.value == -1){
                                                                     yyerror("Detected function on multiple assignation with other assignable values");
                                                                     YYABORT;
@@ -323,7 +322,7 @@ restoIF:                        { printf(")\n"); }
 
 
 sentenciaFOR: FOR '(' declaracionFor ';' expresionBool ';' asignacion ')' '{'       { if ($3.value == 0) // DECLARATION 
-																						printf("(let %s",$3.code);
+																						printf("(let (%s)",$3.code);
 																					  else // ASSIGNATION
 																					    printf("%s", $3.code);
                                                                                      printf("(loop while %s do \n", $5.code);}
@@ -365,6 +364,7 @@ expresionBool: expresion        { if ( $1.isbool == 0){
                                   } else{
                                     $$.code = $1.code;
                                   }
+								  $$.isbool = 1;
                                 }
             ;
 
@@ -374,14 +374,12 @@ expresionAric: expresion        { if ( $1.isbool == 1){
                                   } else{
                                     $$.code = $1.code;
                                   }
+								  $$.isbool = 0;
                                 }
             ;
 
 
-expresion: termino                     { $$.code = $1.code ;
-                                         $$.value = $1.value ;
-                                        // Never translate terms
-                                         $$.isbool = 2; }
+expresion: termino                     { $$ = $1; }
             | expresion AND expresion  { concat_ptr = temp; 
                                         concat_ptr += sprintf(concat_ptr, "(and ");
                                         if ($1.isbool == 0){
@@ -541,6 +539,7 @@ expresion: termino                     { $$.code = $1.code ;
                                             // Concat $3 transformed
                                             concat_ptr += sprintf(concat_ptr, "(if %s 1 0))", $3.code);
                                         } else {
+
                                             concat_ptr += sprintf(concat_ptr, "%s )", $3.code);
                                         }
                                         $$.isbool = 0;
@@ -628,13 +627,17 @@ termino:        operando                           { $$ = $1 ; }
             ;
 
 operando:      varIdentf                 { $$.code = $1.code ; 
-                                            $$.value = 0;}
+                                            $$.value = 0;
+											$$.isbool = 0;}
             |   NUMBER                   { sprintf (temp, "%d", $1.value) ;
                                            $$.code = gen_code (temp) ; 
-                                           $$.value = 0;}
-            |   '(' expresionAric ')'     { $$ = $2 ; }
-            | funcionLlamada             { $$.code = $1.code;
-                                            $$.value = -1;}
+                                           $$.value = 0;
+                                           $$.isbool = 0;
+                                        }
+            |   '(' expresion ')'       { $$ = $2 ; }
+            | funcionLlamada            { $$.code = $1.code;
+                                            $$.value = -1;
+											$$.isbool = 0;}
             ;
 
 
